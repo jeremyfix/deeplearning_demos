@@ -2,8 +2,14 @@
 
 In this repository, you will find some scripts used to perform some deep learning demos.
 
+- [Semantic segmentation](semantic-segmentation)
+	- Installation
+	- Use
+
 
 ## Semantic segmentation
+
+### Installation 
 
 For the semantic segmentation demos, the script uses :
 
@@ -29,4 +35,4 @@ You should then be able to do:
 
 If the above commands fail, you should probably check your PYTHONPATH, or the init script, or .. let me know in the issue ?
 
-
+### Usage
