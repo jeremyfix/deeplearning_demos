@@ -20,7 +20,7 @@ You can get this repositories and clone them somewhere in your pythonpath, for e
 Please note that for the semantic_segmentation_pytorch, the output directory has been renamed with "_" instead of "-" for later being able to import it within python.
 
 
-For the semantic_segmentation_pytorch lib, since they do not provide any init script, we need to copy one into the directory. Take the [./share/semantic_segmentation_pytorch__init__.py](__init__.py) script, and copy it in the clone semantic_segmentation_pytorch directory and rename it as `__init__.py`.
+For the semantic_segmentation_pytorch lib, since they do not provide any init script, we need to copy one into the directory. Take the [__init__.py](./share/semantic_segmentation_pytorch__init__.py) script, and copy it in the clone semantic_segmentation_pytorch directory and rename it as `__init__.py`.
 
 You should then be able to do:
 
