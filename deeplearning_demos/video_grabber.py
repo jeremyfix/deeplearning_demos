@@ -5,7 +5,7 @@ import sys
 # External modules
 import cv2
 # Local modules
-import utils
+from . import utils
 
 
 try:

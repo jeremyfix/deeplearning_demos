@@ -10,8 +10,8 @@ import functools
 import cv2
 import numpy as np
 # Local modules
-import video_grabber
-import utils
+from . import video_grabber
+from . import utils
 
 parser = argparse.ArgumentParser()
 
