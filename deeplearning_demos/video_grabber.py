@@ -5,7 +5,7 @@ import sys
 # External modules
 import cv2
 # Local modules
-from . import utils
+from deeplearning_demos import utils
 
 
 try:

@@ -20,7 +20,7 @@ from PIL import Image
 # Local modules
 # import semantic-segmentation-pytorch as semseg
 # Delayed because using argparse
-from . import utils
+from deeplearning_demos import utils
 
 try:
     import semantic_segmentation_pytorch

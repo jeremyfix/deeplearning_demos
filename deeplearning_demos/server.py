@@ -2,7 +2,7 @@
 import argparse
 import socket
 # Local modules
-import utils
+from deeplearning_demos import utils
 
 
 def image_process(cv2_img):
