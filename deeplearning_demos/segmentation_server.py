@@ -285,8 +285,7 @@ class Server:
                     print("Error : {}".format(e))
 
 
-if __name__ == '__main__':
-
+def main():
     parser = argparse.ArgumentParser()
 
     # Arguments for the server
@@ -346,3 +345,7 @@ if __name__ == '__main__':
 
     # Start the server!
     server.run()
+
+
+if __name__ == '__main__':
+    main()
