@@ -339,7 +339,7 @@ def main():
         else:
             args.config = os.path.join(config_path, args.config[9:])
 
-
+    print("Loading {}".format(args.config))
     config = yaml.safe_load(open(args.config, 'r'))
 
     if config['library'] == 'semantic_segmentation_pytorch':
