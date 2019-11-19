@@ -20,6 +20,7 @@ from PIL import Image
 # Local modules
 # import semantic-segmentation-pytorch as semseg
 # Delayed because using argparse
+import deeplearning_demos
 from deeplearning_demos import utils
 
 try:
@@ -314,7 +315,9 @@ def main():
     # Argument for the config file defining the library and model to load
     parser.add_argument('--config',
                         type=str,
-                        help='The config to load',
+                        help='The config to load. If you wish to use a'
+                        'config provided by the deeplearning_demos '
+                        'package, use --config config://',
                         action='store',
                         required=True)
 
@@ -323,6 +326,20 @@ def main():
     device = torch.device('cuda')
 
     # Loads the provided config
+    if(len(args.config) >= 9 and
+       args.config[:9] == 'config://'):
+        config_path = os.path.join(
+            os.path.dirname(deeplearning_demos.__file__),
+            './configs')
+        if(len(args.config) == 9):
+            # Check the available configs
+            print("Available configs : ")
+            print("\n".join(["- " + c for c in os.listdir(config_path)]))
+            return
+        else:
+            args.config = os.path.join(config_path, args.config[9:])
+
+
     config = yaml.safe_load(open(args.config, 'r'))
 
     if config['library'] == 'semantic_segmentation_pytorch':
