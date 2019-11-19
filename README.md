@@ -1,13 +1,14 @@
 # Deep learning demos
 
-In this repository, you will find some scripts used to perform some deep learning demos. I'm using these scripts to run some deeplearning demos on a remote GPU and feed it with images captured with the webcam on my laptop. This is usefull for being able to use the power of GPUs for, say, demos during lectures. If you want to do the same, in addition to the client/server provided here, I'm also using ssh tunneling scripts to forward the ports of the server running on the remote GPU on my localhost with [these scripts](https://github.com/jeremyfix/deeplearning-lectures/tree/master/ClusterScripts).
+In this repository, you will find some scripts used to perform some deep learning demos. I'm using these scripts to run some deeplearning demos on a remote GPU and feed it with images captured with the webcam on my laptop. This is useful for being able to use the power of GPUs for, say, demos during lectures. If you want to do the same, in addition to the client/server provided here, I'm also using ssh tunneling scripts to forward the ports of the server running on the remote GPU on my localhost with [these scripts](https://github.com/jeremyfix/deeplearning-lectures/tree/master/ClusterScripts).
 
-If necessary, the client/server handles JPEG compression/decompression. That might be usefull for low bandwith networks. 
+If necessary, the client/server handles JPEG compression/decompression. That might be useful for low bandwidth networks. 
 
 - [General client/server documentation](general-clientserver-documentation)
 - [Semantic segmentation](semantic-segmentation)
 	- [Installation](installation)
 	- [Usage](use)
+
 
 ## General client/server documentation
 
