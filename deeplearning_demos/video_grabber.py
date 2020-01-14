@@ -34,7 +34,6 @@ class VideoGrabber(Thread):
         """
         Thread.__init__(self)
         self.cap = cv2.VideoCapture(device_id)
-        self.turbojpeg = TurboJPEG()
         self.resize_factor = resize
         self.running = True
         self.buffer = None
