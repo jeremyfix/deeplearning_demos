@@ -8,6 +8,7 @@ setup(
     packages=['deeplearning_demos'],
     license='LICENSE.txt',
     description='Some scripts to easily raise up deep learning demos',
+    package_data={'deeplearning_demos': ['configs/*.yaml']},
     entry_points={
         'console_scripts': ['segmentation_server=deeplearning_demos.segmentation_server:main',
                             'segmentation_client=deeplearning_demos.client:main']
