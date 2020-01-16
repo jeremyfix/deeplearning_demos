@@ -12,12 +12,12 @@ If necessary, the client/server handles JPEG compression/decompression. That mig
 
 ## General client/server documentation
 
-For the segmentation server
+For the segmentation server, a binary segmentation_server is installed in your PATH.
 
-	$ python3 deeplearning_demos/segmentation_server.py
-	usage: segmentation_server.py [-h] [--port PORT] [--jpeg_quality JPEG_QUALITY]
-	                              [--jpeg_encoder {cv2,turbo}] [--image IMAGE]
-	                              --config CONFIG
+	$ segmentation_server
+	usage: segmentation_server [-h] [--port PORT] [--jpeg_quality JPEG_QUALITY]
+	                           [--jpeg_encoder {cv2,turbo}] [--image IMAGE]
+	                           --config CONFIG
 	
 	optional arguments:
 	  -h, --help            show this help message and exit
@@ -45,12 +45,12 @@ For the server
 							Which library to use to encode/decode in JPEG the
 							images
 
-For the client
+For the client, you can also use the installed entry point :
 		
-	$ python3 deeplearning_demos/client.py
-    usage: client.py [-h] --host HOST --port PORT [--jpeg_quality JPEG_QUALITY]
-                     [--resize RESIZE] [--encoder {cv2,turbo}] [--image IMAGE]
-                     [--device DEVICE]
+	$ segmentation_client
+    usage: segmentation_client [-h] --host HOST --port PORT [--jpeg_quality JPEG_QUALITY]
+                               [--resize RESIZE] [--encoder {cv2,turbo}] [--image IMAGE]
+                               [--device DEVICE]
     
     optional arguments:
       -h, --help            show this help message and exit
@@ -66,7 +66,7 @@ For the client
 
 ## Semantic segmentation
 
-### Installation 
+### Obsolete
 
 For the semantic segmentation demos, the script uses :
 
@@ -91,6 +91,18 @@ You should then be able to do:
     python3 -c "import detectron2"
 
 If the above commands fail, you should probably check your PYTHONPATH, or the init script, or .. let me know in the issue ?
+
+
+### Installation of the dependencies
+
+#### Detectron2
+
+
+#### semantic_segmentation_pytorch
+
+### Installation
+
+Now 
 
 ### Usage
 
