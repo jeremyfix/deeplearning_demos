@@ -9,6 +9,9 @@ If necessary, the client/server handles JPEG compression/decompression. That mig
 	- [Installation](installation)
 	- [Usage](use)
 
+## Acknowledgment
+
+These developments have been released within the [FEDER Grone project](https://interreg-grone.eu/)
 
 ## General client/server documentation
 
