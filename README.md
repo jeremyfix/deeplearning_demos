@@ -67,47 +67,58 @@ For the client, you can also use the installed entry point :
       --image IMAGE         Image file to be processed
       --device DEVICE       The id of the camera device 0, 1, ..
 
+
+## Installation
+
+Install [pytorch](https://pytorch.org/get-started/locally/). While writting this guide, pytorch-1.5.1 was used.
+
+Then you can clone clone the repository:
+
+	git clone --recursive https://github.com/jeremyfix/deeplearning_demos.git
+
+In the following, we denote the variable DEEPLEARNING_DEMOS_PATH the path of the deeplearning_demos clone on your drive. For example, if you ran the command above from your home, DEEPLEARNING_DEMOS_PATH=~/deeplearning_demos
+
 ## Semantic segmentation
 
-### Obsolete
+### Detectron2
 
-For the semantic segmentation demos, the script uses :
+Here, we use detectron2 from facebook research [github link](https://github.com/facebookresearch/detectron2/). That repository is cloned in the deeplearning_libs subdir. So
 
-- detectron2 from facebook research [github link](https://github.com/facebookresearch/detectron2/)
-- semantic-segmentation-pytorch from the MIT CSAIL [github link](https://github.com/CSAILVision/semantic-segmentation-pytorch)
+	cd deeplearning_libs
 
-You can get this repositories and clone them somewhere in your pythonpath, for example
+and then follow the installation instructions on the [detectron2 website](https://github.com/facebookresearch/detectron2/blob/master/INSTALL.md).
+	
+Once installed, you should be able to:
 
-	mkdir -p ~/GIT/deeplearning_libs
-	git clone https://github.com/facebookresearch/detectron2.git ~/GIT/deeplearning_libs/detectron2
-	git clone https://github.com/CSAILVision/semantic-segmentation-pytorch.git ~/GIT/deeplearning_libs/semantic_segmantation_pytorch
-	export PYTHONPATH=$PYTHONPATH:~/GIT/deeplearning_libs
+	python3 -c "import detectron2"
 
-Please note that for the semantic_segmentation_pytorch, the output directory has been renamed with "_" instead of "-" for later being able to import it within python.
+### Semantic segmetnation pytorch (MIT CSAIL)
 
+Here we use the semantic-segmentation-pytorch from the MIT CSAIL [github link](https://github.com/CSAILVision/semantic-segmentation-pytorch). The code is already cloned into the deeplearning_libs subdirectory. Howevern you still need to copy in an `__init__.py` script to be able to import it as a module.
 
-For the semantic_segmentation_pytorch lib, since they do not provide any init script, we need to copy one into the directory. Take the [__init__.py](./share/semantic_segmentation_pytorch__init__.py) script, and copy it in the clone semantic_segmentation_pytorch directory and rename it as `__init__.py`.
+Take the [__init__.py](./share/semantic_segmentation_pytorch__init__.py) script, and copy it in the clone semantic_segmentation_pytorch directory and rename it as `__init__.py`.
+
+	cp share/semantic_segmentation_pytorch__init__.py deeplearning_libs/semantic_segmentation_pytorch/__init__.py
 
 You should then be able to do:
 
     python3 -c "import semantic_segmentation_pytorch"
-    python3 -c "import detectron2"
 
 If the above commands fail, you should probably check your PYTHONPATH, or the init script, or .. let me know in the issue ?
 
+## Depth estimation
 
-### Installation of the dependencies
+### From big to small
 
-#### Detectron2
+Here we use the [From big to small: multi-scale local planar guidance depth estimation](https://github.com/cogaplex-bts/bts) code which is already cloned in the deeplearning_libs subdirectory. 
+
+However, you still need to bring in an `__init__.py` script to be able to import the pytorch code.
+
+**WIP**
 
 
-#### semantic_segmentation_pytorch
 
-### Installation
-
-Now 
-
-### Usage
+## Usage
 
 For running the server, you basically need to specify a config file. The config file tells which library to use (semantic-segmentation-pytorch or detectron2) and then some specific configurations for these libs. Example config files are provided in the [deeplearning_demos/configs](deeplearning_demos/configs) directory.
 
