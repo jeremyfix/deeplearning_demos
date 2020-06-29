@@ -1,6 +1,7 @@
 library: bts
 library_options:
     encoder: 'densenet161_bts'
+    checkpoint: 'bts_nyu_v2_pytorch_densenet161.zip'
     bts_size:
     max_depth: 10 # meters
     image_shape:

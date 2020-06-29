@@ -11,7 +11,7 @@ import numpy as np
 
 try:
     import bts
-    from bts import BtsModel, loadCheckpoint
+    from bts.pytorch.bts import BtsModel
 except ImportError:
     print("Warning: cannot import bts")
 
@@ -33,10 +33,16 @@ class BTS:
         self.image_shape = (cfg['library_options']['width'],
                             cfg['library_options']['height'])
 
+        # Download and extract the checkpoint if necessary
+        bts_checkpoint_dir = os.path.join(os.path.dirname(bts.__file__),
+                                          'models')
+        if not os.path.exists(bts_checkpoint_dir):
+            bts_checkpoint_dir.mkdir()
+
         #loading the model
         self.model = BtsModel(params=params)
         self.model = torch.nn.DataParallel(self.model)
-        checkpoint = loadCheckpoint()
+        checkpoint = torch.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'model'))
         self.model.load_state_dict(checkpoint['model'])
         self.model.eval()
         self.model.cuda()
@@ -84,7 +90,7 @@ class BTS:
         Returns a Grayscale image in np.uint8 where 255 = arg.max_depth
         '''
         frame_ud = cv2.remap(ndimage, self.map1, self.map2,
-                            interpolation=cv2.INTER_LINEAR)
+                             interpolation=cv2.INTER_LINEAR)
         frame = cv2.cvtColor(frame_ud, cv2.COLOR_BGR2RGB)
         input_image = frame.astype(np.float32)
 
