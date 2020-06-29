@@ -147,7 +147,7 @@ def main():
     elif config['library'] == 'detectron2':
         model = Detectron2(config['library_options'])
     elif config['library'] == 'bts':
-        model = BTS()
+        model = BTS(config['library_options'])
 
     # Testing on a single image
     if args.image is not None:
