@@ -31,6 +31,7 @@ class Server:
     def __init__(self, port, jpeg_encoder, jpeg_quality, image_processing):
         self.jpeg_handler = utils.make_jpeg_handler(jpeg_encoder, jpeg_quality)
         self.image_processing = image_processing
+        self.port = port
         self.tmp_buffer = bytearray(7)
         # Creates a temporary buffer which can hold the
         # largest image we can transmit
@@ -44,7 +45,7 @@ class Server:
         print("The server is ready and listening !")
         self.socket.listen(1)
         while True:
-            print("Waiting for a connection on localhost:{}".format(port))
+            print("Waiting for a connection on localhost:{}".format(self.port))
             conn, addr = self.socket.accept()
             with conn:
                 print('Got connection from {}'.format(addr))
