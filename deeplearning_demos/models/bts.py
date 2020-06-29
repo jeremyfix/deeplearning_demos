@@ -119,5 +119,7 @@ class BTS:
         depth = np.zeros((ndimage.shape[0], ndimage.shape[1]), dtype=np.uint16)
         depth_01 = depth_est[0].cpu().squeeze() / self.params.max_depth
         depth[32:-1-31, 32:-1-31] = np.uint16(np.round(np.clip(depth_01*255, 0, 255)))
-
+        # depth_01 = depth_est[0].cpu().squeeze().numpy()
+        # print(depth_01.min(), depth_01.max(), depth_01.dtype)
+        
         return depth
