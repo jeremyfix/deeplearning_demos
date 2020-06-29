@@ -116,7 +116,7 @@ class BTS:
             focal = Variable(torch.tensor([self.focal])).cuda()
             lpg8x8, lpg4x4, lpg2x2, reduc1x1, depth_est = self.model(image, focal)
 
-        depth = np.zeros((ndimage.shape[0], ndimage.shape[1]), dtype=np.uint16)
+        depth = np.zeros((ndimage.shape[0], ndimage.shape[1]), dtype=np.uint8)
         depth_01 = depth_est[0].cpu().squeeze() / self.params.max_depth
         depth[32:-1-31, 32:-1-31] = np.uint16(np.round(np.clip(depth_01*255, 0, 255)))
         # depth_01 = depth_est[0].cpu().squeeze().numpy()
