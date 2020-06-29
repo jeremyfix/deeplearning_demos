@@ -6,11 +6,13 @@ This scripts provides an interface to the bts library
 # Standard modules
 import os
 import pathlib
+import zipfile
 # External modules
 import cv2
 import torch
 from torch.autograd import Variable
 import numpy as np
+import wget
 
 try:
     import bts
@@ -36,16 +38,31 @@ class BTS:
         self.image_shape = (cfg['image_shape']['width'],
                             cfg['image_shape']['height'])
 
+        self.set_camera_calibration()
+
         # Download and extract the checkpoint if necessary
         bts_checkpoint_dir = os.path.join(os.path.dirname(bts.__file__),
+                                          'pytorch',
                                           'models')
         if not os.path.exists(bts_checkpoint_dir):
+            print("The checkpoint dir {} does not exist, I create it".format(bts_checkpoint_dir))
             pathlib.Path(bts_checkpoint_dir).mkdir()
+        bts_model_checkpoint_dir = os.path.join(bts_checkpoint_dir,
+                                                cfg['checkpoint'])
+        if not os.path.exists(bts_model_checkpoint_dir):
+            print("The checkpoint {} is not available, I download it".format(bts_model_checkpoint_dir))
+            base_url = "https://cogaplex-bts.s3.ap-northeast-2.amazonaws.com/"
+            checkpoint_url = "{}{}.zip".format(base_url, cfg['checkpoint'])
+            url = wget.download(checkpoint_url, out=bts_checkpoint_dir)
+            archive = zipfile.ZipFile("{}.zip".format(bts_model_checkpoint_dir))
+            archive.extractall(path=bts_checkpoint_dir)
+
+        checkpoint_model_file = os.path.join(bts_model_checkpoint_dir, "model")
 
         #loading the model
         self.model = BtsModel(params=params)
         self.model = torch.nn.DataParallel(self.model)
-        checkpoint = torch.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'model'))
+        checkpoint = torch.load(checkpoint_model_file)
         self.model.load_state_dict(checkpoint['model'])
         self.model.eval()
         self.model.cuda()
