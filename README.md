@@ -90,7 +90,9 @@ and then follow the installation instructions on the [detectron2 website](https:
 	
 Once installed, you should be able to:
 
-	python3 -c "import detectron2"
+	python3 -c "import detectron2; from detectron2 import _C"
+
+If that fails, be sure to strictly follow the installation instructions of detectron2.
 
 ### Semantic segmetnation pytorch (MIT CSAIL)
 

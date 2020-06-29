@@ -30,18 +30,18 @@ try:
 except ImportError:
     print("Cannot import semantic_segmentation_pytorch")
 
-try:
-    import detectron2
-    from detectron2.engine import DefaultPredictor \
-            as detectron2_DefaultPredictor
-    from detectron2.config import get_cfg \
-            as detectron2_get_cfg
-    from detectron2.utils.visualizer import Visualizer \
-            as detectron2_Visualizer
-    from detectron2.data import MetadataCatalog \
-            as detectron2_MetaDataCatalog
-except ImportError:
-    print("Warning: cannot import detectron2")
+# try:
+import detectron2
+from detectron2.engine import DefaultPredictor \
+        as detectron2_DefaultPredictor
+from detectron2.config import get_cfg \
+        as detectron2_get_cfg
+from detectron2.utils.visualizer import Visualizer \
+        as detectron2_Visualizer
+from detectron2.data import MetadataCatalog \
+        as detectron2_MetaDataCatalog
+# except ImportError:
+    # print("Warning: cannot import detectron2")
 
 
 class SemanticSegmentationPytorch:
