@@ -37,6 +37,8 @@ def main():
     parser.add_argument('--device', type=int,
                         help='The id of the camera device 0, 1, ..',
                         default=0)
+    parser.add_argument('--depth', type=int,
+                        choices=[1, 3], default=3)
 
     args = parser.parse_args()
 
@@ -45,6 +47,7 @@ def main():
     jpeg_quality = args.jpeg_quality
     resize_factor = args.resize
     device_id = args.device
+    depth = args.depth
 
     cv2.namedWindow("Image")
     cv2.namedWindow("Output")
@@ -120,11 +123,12 @@ def main():
                                    ", got '{}'".format(cmd))
 
             # Transaction is done, we now process/display the received image
-            img = jpeg_handler.decompress(img_view[:img_size])
-            bgr_labels = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+            output = jpeg_handler.decompress(img_view[:img_size])
+            if depth == 3:
+                output = cv2.cvtColor(output, cv2.COLOR_RGB2BGR)
 
             cv2.imshow("Image", orig_img)
-            cv2.imshow("Output", bgr_labels)
+            cv2.imshow("Output", output)
             keep_running = not(cv2.waitKey(1) & 0xFF == ord('q'))
             if not keep_running:
                 sock.sendall('quit!'.encode('ascii'))
