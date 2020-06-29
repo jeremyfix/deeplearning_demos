@@ -3,6 +3,9 @@
 This scripts provides an interface to the bts library
 """
 
+# Standard modules
+import os
+import pathlib
 # External modules
 import cv2
 import torch
@@ -30,14 +33,14 @@ class BTS:
         params.max_depth = cfg['max_depth']
         self.focal = None
 
-        self.image_shape = (cfg['library_options']['width'],
-                            cfg['library_options']['height'])
+        self.image_shape = (cfg['image_shape']['width'],
+                            cfg['image_shape']['height'])
 
         # Download and extract the checkpoint if necessary
         bts_checkpoint_dir = os.path.join(os.path.dirname(bts.__file__),
                                           'models')
         if not os.path.exists(bts_checkpoint_dir):
-            bts_checkpoint_dir.mkdir()
+            pathlib.Path(bts_checkpoint_dir).mkdir()
 
         #loading the model
         self.model = BtsModel(params=params)
