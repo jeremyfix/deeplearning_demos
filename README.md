@@ -72,6 +72,14 @@ For the client, you can also use the installed entry point :
 
 Install [pytorch](https://pytorch.org/get-started/locally/). While writting this guide, pytorch-1.5.1 was used.
 
+We also need python3-opencv :
+
+    apt install python3-opencv
+
+By default, we use it OpenCV for JPEG encoding the image we send over the network but if you want, you can also use TurboJPEG which requires an additional dependency:
+
+    python3 -m pip install --user PyTurboJPEG
+
 Then you can clone clone the repository:
 
 	git clone --recursive https://github.com/jeremyfix/deeplearning_demos.git
