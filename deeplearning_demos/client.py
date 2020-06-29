@@ -47,7 +47,7 @@ def main():
     device_id = args.device
 
     cv2.namedWindow("Image")
-    cv2.namedWindow("Labels")
+    cv2.namedWindow("Output")
 
     keep_running = True
 
@@ -124,7 +124,7 @@ def main():
             bgr_labels = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
             cv2.imshow("Image", orig_img)
-            cv2.imshow("Labels", bgr_labels)
+            cv2.imshow("Output", bgr_labels)
             keep_running = not(cv2.waitKey(1) & 0xFF == ord('q'))
             if not keep_running:
                 sock.sendall('quit!'.encode('ascii'))
