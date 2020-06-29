@@ -28,11 +28,12 @@ class BTS:
 
     def __init__(self, cfg):
 
-        params = Params()
-        params.mode = 'test'
-        params.encoder = cfg['encoder']
-        params.bts_size = cfg['bts_size']
-        params.max_depth = cfg['max_depth']
+        self.params = Params()
+        self.params.mode = 'test'
+        self.params.encoder = cfg['encoder']
+        self.params.bts_size = cfg['bts_size']
+        self.params.max_depth = cfg['max_depth']
+        self.params.dataset = cfg['dataset']
         self.focal = None
 
         self.image_shape = (cfg['image_shape']['width'],
@@ -60,7 +61,7 @@ class BTS:
         checkpoint_model_file = os.path.join(bts_model_checkpoint_dir, "model")
 
         #loading the model
-        self.model = BtsModel(params=params)
+        self.model = BtsModel(params=self.params)
         self.model = torch.nn.DataParallel(self.model)
         checkpoint = torch.load(checkpoint_model_file)
         self.model.load_state_dict(checkpoint['model'])
