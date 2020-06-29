@@ -10,7 +10,7 @@ setup(
     description='Some scripts to easily raise up deep learning demos',
     package_data={'deeplearning_demos': ['configs/*.yaml']},
     entry_points={
-        'console_scripts': ['dldemos_server=deeplearning_demos.segmentation_server:main',
+        'console_scripts': ['dldemos_server=deeplearning_demos.dlserver:main',
                             'dldemos_client=deeplearning_demos.client:main']
     }
 )
