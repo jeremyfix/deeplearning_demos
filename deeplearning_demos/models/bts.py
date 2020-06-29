@@ -11,7 +11,7 @@ except ImportError:
 
 class BTS:
 
-    def __init__(self, cfg):
+    def __init__(self):
         pass
 
     def __call__(self, ndimage):
