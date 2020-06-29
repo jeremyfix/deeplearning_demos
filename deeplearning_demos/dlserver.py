@@ -44,7 +44,7 @@ class Server:
         print("The server is ready and listening !")
         self.socket.listen(1)
         while True:
-            print("Waiting for a connection")
+            print("Waiting for a connection on localhost:{}".format(port))
             conn, addr = self.socket.accept()
             with conn:
                 print('Got connection from {}'.format(addr))
