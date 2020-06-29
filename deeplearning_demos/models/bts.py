@@ -75,36 +75,18 @@ class BTS:
 
     def set_camera_calibration(self):
         # Intrinsic parameters for your own camera
-        # camera_matrix = np.zeros(shape=(3, 3))
-        # camera_matrix[0, 0] = 5.4765313594010649e+02
-        # camera_matrix[0, 2] = 3.2516069906172453e+02
-        # camera_matrix[1, 1] = 5.4801781476172562e+02
-        # camera_matrix[1, 2] = 2.4794113960783835e+02
-        # camera_matrix[2, 2] = 1
-        # dist_coeffs = np.array([ 3.7230261423972011e-02, -1.6171708069773008e-01, -3.5260752900266357e-04, 1.7161234226767313e-04, 1.0192711400840315e-01 ])
-
-        #bebop
         camera_matrix = np.array(self.params.camera_matrix).reshape((3, 3))
-        print(camera_matrix)
         if self.params.distortion:
             dist_coeffs = np.array(self.params.distortion)
         else:
             dist_coeffs = None
-
-        # Parameters for a model trained on NYU Depth V2
-        new_camera_matrix = np.zeros(shape=(3, 3))
-        new_camera_matrix[0, 0] = 518.8579
-        new_camera_matrix[0, 2] = 320
-        new_camera_matrix[1, 1] = 518.8579
-        new_camera_matrix[1, 2] = 240
-        new_camera_matrix[2, 2] = 1
 
         self.focal = camera_matrix[0, 0]
 
         R = np.identity(3, dtype=np.float)
         self.map1, self.map2 = cv2.initUndistortRectifyMap(camera_matrix,
                                                            dist_coeffs, R,
-                                                           new_camera_matrix,
+                                                           camera_matrix,
                                                            self.image_shape,
                                                            cv2.CV_32FC1)
 
@@ -134,8 +116,8 @@ class BTS:
             focal = Variable(torch.tensor([self.focal])).cuda()
             lpg8x8, lpg4x4, lpg2x2, reduc1x1, depth_est = self.model(image, focal)
 
-        depth = np.zeros((ndimage.shape[0], ndimage.shape[1]), dtype=np.uint8)
+        depth = np.zeros((ndimage.shape[0], ndimage.shape[1]), dtype=np.uint16)
         depth_01 = depth_est[0].cpu().squeeze() / self.params.max_depth
-        depth[32:-1-31, 32:-1-31] = np.uint8(np.round(np.clip(depth_01*255, 0, 255)))
+        depth[32:-1-31, 32:-1-31] = np.uint16(np.round(np.clip(depth_01*255, 0, 255)))
 
         return depth
