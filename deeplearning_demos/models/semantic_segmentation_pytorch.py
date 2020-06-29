@@ -4,6 +4,17 @@ This script provides an interface to the semantic segmentation library
 of the MIT CSAIL
 '''
 
+
+# Standard modules
+import os
+# External modules
+import numpy as np
+from scipy.io import loadmat
+from PIL import Image
+import torch
+from torchvision import transforms
+import wget
+
 try:
     import semantic_segmentation_pytorch
     from semantic_segmentation_pytorch.utils import colorEncode
@@ -162,4 +173,3 @@ class SemanticSegmentationPytorch:
         pred_color = colorEncode(pred_idx,
                                  self.colors)
         return pred_color.astype(np.uint8)
-

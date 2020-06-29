@@ -10,13 +10,12 @@ import os
 import socket
 import yaml
 # External modules
+import numpy as np
+from PIL import Image
 import torch
 import torch.nn
 from torchvision import transforms
-import numpy as np
-from scipy.io import loadmat
 import wget
-from PIL import Image
 # Local modules
 # import semantic-segmentation-pytorch as semseg
 # Delayed because using argparse
