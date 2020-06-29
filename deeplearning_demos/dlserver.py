@@ -14,8 +14,6 @@ import numpy as np
 from PIL import Image
 import torch
 import torch.nn
-from torchvision import transforms
-import wget
 # Local modules
 # import semantic-segmentation-pytorch as semseg
 # Delayed because using argparse
@@ -23,6 +21,7 @@ import deeplearning_demos
 from deeplearning_demos import utils
 from deeplearning_demos.models.semantic_segmentation_pytorch import SemanticSegmentationPytorch
 from deeplearning_demos.models.detectron2 import Detectron2
+from deeplearning_demos.models.bts import BTS
 
 
 class Server:
@@ -147,6 +146,8 @@ def main():
                                             config['library_options'])
     elif config['library'] == 'detectron2':
         model = Detectron2(config['library_options'])
+    elif config['library'] == 'bts':
+        model = BTS()
 
     # Testing on a single image
     if args.image is not None:
