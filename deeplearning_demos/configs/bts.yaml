@@ -5,6 +5,10 @@ library_options:
     checkpoint: 'bts_nyu_v2_pytorch_densenet161'
     bts_size: 512
     max_depth: 10 # meters
+    # Bebop2 camera parameters
     image_shape:
         width: 640
         height: 480
+    camera_matrix: [396.17782, 0., 322.453185, 0., 403.197845, 172.320207, 0., 0., 1]
+    odistortion: [-0.001983, 0.015844, -0.003171, 0.001506, 0.0]
+

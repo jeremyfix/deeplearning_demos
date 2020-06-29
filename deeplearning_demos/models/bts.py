@@ -34,6 +34,11 @@ class BTS:
         self.params.bts_size = cfg['bts_size']
         self.params.max_depth = cfg['max_depth']
         self.params.dataset = cfg['dataset']
+        self.params.camera_matrix = cfg['camera_matrix']
+        if 'distortion' in cfg:
+            self.params.distortion = cfg['distortion']
+        else:
+            self.params.distortion = None
         self.focal = None
 
         self.image_shape = (cfg['image_shape']['width'],
@@ -77,15 +82,14 @@ class BTS:
         # camera_matrix[1, 2] = 2.4794113960783835e+02
         # camera_matrix[2, 2] = 1
         # dist_coeffs = np.array([ 3.7230261423972011e-02, -1.6171708069773008e-01, -3.5260752900266357e-04, 1.7161234226767313e-04, 1.0192711400840315e-01 ])
-        
+
         #bebop
-        camera_matrix = np.zeros(shape=(3, 3))
-        camera_matrix[0, 0] = 396.17782
-        camera_matrix[0, 2] = 322.453185
-        camera_matrix[1, 1] = 403.197845
-        camera_matrix[1, 2] = 172.320207
-        camera_matrix[2, 2] = 1
-        dist_coeffs = np.array([-0.001983, 0.015844, -0.003171, 0.001506, 0.0])
+        camera_matrix = np.array(self.params.camera_matrix).reshape((3, 3))
+        print(camera_matrix)
+        if self.params.distortion:
+            dist_coeffs = np.array(self.params.distortion)
+        else:
+            dist_coeffs = None
 
         # Parameters for a model trained on NYU Depth V2
         new_camera_matrix = np.zeros(shape=(3, 3))
