@@ -1,1 +1,8 @@
 library: bts
+library_options:
+    encoder: 'densenet161_bts'
+    bts_size:
+    max_depth: 10 # meters
+    image_shape:
+        width: 640
+        height: 480

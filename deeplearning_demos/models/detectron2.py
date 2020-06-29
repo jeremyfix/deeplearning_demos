@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-This scripts provides an interface to the detectron2 library 
+This scripts provides an interface to the detectron2 library
 """
 
 # Standard modules
