@@ -5,9 +5,12 @@ In this repository, you will find some scripts used to perform some deep learnin
 If necessary, the client/server handles JPEG compression/decompression. That might be useful for low bandwidth networks. 
 
 - [General client/server documentation](general-clientserver-documentation)
+- [Installation](installation)
 - [Semantic segmentation](semantic-segmentation)
-	- [Installation](installation)
-	- [Usage](use)
+	- [Detectron2](detectron2)
+	- [Semantic segmentation pytorch (MIT CSAIL)](semantic-segmentation-pytorch-mit-csail)
+- [Depth estimation](depth-estimation)
+    - [From big to small](from-big-to-small)
 
 ## Acknowledgment
 
@@ -15,10 +18,10 @@ These developments have been released within the [FEDER Grone project](https://i
 
 ## General client/server documentation
 
-For the segmentation server, a binary segmentation_server is installed in your PATH.
+For the server, an executable entry point dldemos_server is installed in your PATH.
 
-	$ segmentation_server
-	usage: segmentation_server [-h] [--port PORT] [--jpeg_quality JPEG_QUALITY]
+	$ dldemos_server
+	usage: dldemos_server [-h] [--port PORT] [--jpeg_quality JPEG_QUALITY]
 	                           [--jpeg_encoder {cv2,turbo}] [--image IMAGE]
 	                           --config CONFIG
 	
@@ -31,22 +34,9 @@ For the segmentation server, a binary segmentation_server is installed in your P
 	                        Which library to use to encode/decode in JPEG the
 	                        images
 	  --image IMAGE         The image to process
-	  --config CONFIG       The config to load
-
-For the server
-
-	$ python3 deeplearning_demos/server.py
-	usage: server.py [-h] --port PORT [--jpeg_quality JPEG_QUALITY]
-					 [--encoder {cv2,turbo}]
-
-	optional arguments:
-	  -h, --help            show this help message and exit
-	  --port PORT           The port on which to listen for incoming connections
-	  --jpeg_quality JPEG_QUALITY
-							The JPEG quality for compressing the reply
-	  --encoder {cv2,turbo}
-							Which library to use to encode/decode in JPEG the
-							images
+	  --config CONFIG       The config to load If you wish to use aconfig
+                            provided by the deeplearning_demos package, use
+                            --config config://
 
 For the client, you can also use the installed entry point :
 		
@@ -67,6 +57,7 @@ For the client, you can also use the installed entry point :
       --image IMAGE         Image file to be processed
       --device DEVICE       The id of the camera device 0, 1, ..
 
+There is also a generic server server.py, doing useless stuff on an image just to show how to program one.
 
 ## Installation
 
@@ -102,13 +93,26 @@ Once installed, you should be able to:
 
 If that fails, be sure to strictly follow the installation instructions of detectron2.
 
-### Semantic segmetnation pytorch (MIT CSAIL)
+Then you can start the server with for example :
+
+    dldemos_server --config config://detectron2-panopticseg.yaml
+
+And then the client
+
+    dldemos_client --port localhost --port 6008 
+
+### Semantic segmentation pytorch (MIT CSAIL)
 
 Here we use the semantic-segmentation-pytorch from the MIT CSAIL [github link](https://github.com/CSAILVision/semantic-segmentation-pytorch). The code is already cloned into the deeplearning_libs subdirectory. Howevern you still need to copy in an `__init__.py` script to be able to import it as a module.
 
-Take the [__init__.py](./share/semantic_segmentation_pytorch__init__.py) script, and copy it in the clone semantic_segmentation_pytorch directory and rename it as `__init__.py`.
+Take the [__init__.py](./share/semantic_segmentation_pytorch__init__.py) script, and copy it in the clone semantic_segmentation_pytorch directory and rename it as `__init__.py` (making a symbolic link to keep it updated does not work):
 
-	cp share/semantic_segmentation_pytorch__init__.py deeplearning_libs/semantic_segmentation_pytorch/__init__.py
+    cd DEEPLEARNING_DEMOS_PATH/deeplearning_libs/semantic_segmentation_pytorch/
+    cp ../../share/semantic_segmentation_pytorch__init__.py __init__.py
+
+Then you need to add a path to your `PYTHONPATH`:
+
+    export PYTHONPATH=$PYTHONPATH:DEEPLEARNING_DEMOS_PATH/deeplearning_libs
 
 You should then be able to do:
 
@@ -116,30 +120,32 @@ You should then be able to do:
 
 If the above commands fail, you should probably check your PYTHONPATH, or the init script, or .. let me know in the issue ?
 
+Then you can start the server with for example :
+
+    dldemos_server --config config://segmentation_resnet101_upernet.yaml
+
+And then the client
+
+    dldemos_client --port localhost --port 6008 
+
 ## Depth estimation
 
 ### From big to small
 
 Here we use the [From big to small: multi-scale local planar guidance depth estimation](https://github.com/cogaplex-bts/bts) code which is already cloned in the deeplearning_libs subdirectory. 
 
-However, you still need to bring in an `__init__.py` script to be able to import the pytorch code.
+However, you still need to bring in an `__init__.py` script to be able to import the pytorch code. The `__init__.py` is basically empty but you still need it.
 
-**WIP**
+    cd DEEPLEARNING_DEMOS_PATH/deeplearning_libs/bts
+    ln -s ../../share/bts__init__.py __init__.py
 
+And that's it, you can test it with :
 
+    dldemos_server --config config://bts.yaml 
 
-## Usage
+Check the content of the bts.yaml file to adapt to your needs.
 
-For running the server, you basically need to specify a config file. The config file tells which library to use (semantic-segmentation-pytorch or detectron2) and then some specific configurations for these libs. Example config files are provided in the [deeplearning_demos/configs](deeplearning_demos/configs) directory.
+Given the depth image is a one channel image, the client needs to be run with a specific argument 
 
-For example, for running the detectron2 with panoptic segmentation :
+    dldemos_client --host localhost --port 6008 --depth 1
 
-	python3 deeplearning_demos/segmentation_server.py --config ./deeplearning_demos/configs/detectron2-panopticseg.yaml
-
-It will take care of downloading the pretrained weights if required (it does so for semantic-segmentation-pytorch; for detectron2, the libs already takes care of it) and run the server. By default, the server will be running on port 6008. 
-
-You can now run the client, which is going to grab an image from the webcam, send it for processing by the server, and display the returned result. 
-
-	python3 deeplearning_demos/client.py --host localhost --port 6008 
-
-You can pass in additional options, check the help message.

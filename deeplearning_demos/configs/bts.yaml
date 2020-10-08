@@ -5,6 +5,15 @@ library_options:
     checkpoint: 'bts_nyu_v2_pytorch_densenet161'
     bts_size: 512
     max_depth: 10 # meters
+    # Bebop2 camera parameters
+    # image_shape:
+    #     width: 640
+    #     height: 480
+    # camera_matrix: [396.17782, 0., 322.453185, 0., 403.197845, 172.320207, 0., 0., 1]
+    # distortion: [-0.001983, 0.015844, -0.003171, 0.001506, 0.0]
+    # Logitech camera
     image_shape:
         width: 640
         height: 480
+    camera_matrix: [542.750605, 0.000000, 309.096079, 0.000000, 538.614221, 229.595703, 0.000000, 0.000000, 1.000000]
+    distortion : [0.067973, -0.184687, 0.001202, 0.000093, 0.000000]
