@@ -126,6 +126,8 @@ def main():
             output = jpeg_handler.decompress(img_view[:img_size])
             if depth == 3:
                 output = cv2.cvtColor(output, cv2.COLOR_RGB2BGR)
+            else:
+                print("Min max : {} , {}".format(output.min(), output.max()))
 
             cv2.imshow("Image", orig_img)
             cv2.imshow("Output", output)
