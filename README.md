@@ -139,6 +139,12 @@ However, you still need to bring in an `__init__.py` script to be able to import
     cd DEEPLEARNING_DEMOS_PATH/deeplearning_libs/bts
     ln -s ../../share/bts__init__.py __init__.py
 
+
+Then you need to add a path to your `PYTHONPATH`:
+
+    export PYTHONPATH=$PYTHONPATH:DEEPLEARNING_DEMOS_PATH/deeplearning_libs
+
+
 And that's it, you can test it with :
 
     dldemos_server --config config://bts.yaml 
