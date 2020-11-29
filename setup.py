@@ -9,7 +9,7 @@ setup(
     license='LICENSE.txt',
     description='Some scripts to easily raise up deep learning demos',
     package_data={'deeplearning_demos': ['configs/*.yaml']},
-    install_requires = ["wget", "cv2"],
+    install_requires = ["wget"],
     entry_points={
         'console_scripts': ['dldemos_server=deeplearning_demos.dlserver:main',
                             'dldemos_client=deeplearning_demos.client:main']
