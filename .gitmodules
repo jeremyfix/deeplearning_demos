@@ -1,9 +1,9 @@
 [submodule "deeplearning_libs/detectron2"]
 	path = deeplearning_libs/detectron2
-	url = git@github.com:facebookresearch/detectron2.git
+	url = https://github.com/facebookresearch/detectron2.git
 [submodule "deeplearning_libs/bts"]
 	path = deeplearning_libs/bts
-	url = git@github.com:cogaplex-bts/bts.git
+	url = https://github.com/cogaplex-bts/bts.git
 [submodule "deeplearning_libs/semantic_segmentation_pytorch"]
 	path = deeplearning_libs/semantic_segmentation_pytorch
-	url = git@github.com:CSAILVision/semantic-segmentation-pytorch.git
+	url = https://github.com/CSAILVision/semantic-segmentation-pytorch.git
