@@ -129,8 +129,11 @@ def main():
             else:
                 print("Min max : {} , {}".format(output.min(), output.max()))
 
+            cv2.imwrite('output.jpg', output)
             cv2.imshow("Image", orig_img)
             cv2.imshow("Output", output)
+            
+
             keep_running = not(cv2.waitKey(1) & 0xFF == ord('q'))
             if not keep_running:
                 sock.sendall('quit!'.encode('ascii'))

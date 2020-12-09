@@ -66,7 +66,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 res = image_process(img)
 
                 # Encode the image
-                res_buffer = jpeg_handler.compress(res)
+                res_buffer = jpeg_handler.compress(res)[0]
 
                 # Make the reply
                 reply = bytes("image{:07}".format(len(res_buffer)), "ascii")
