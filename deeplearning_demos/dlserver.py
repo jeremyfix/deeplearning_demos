@@ -68,7 +68,7 @@ class Server:
                             res = self.image_processing(img)
 
                             # Encode the image
-                            res_buffer = self.jpeg_handler.compress(res)
+                            res_buffer = self.jpeg_handler.compress(res)[0]
 
                             # Make the reply
                             reply = bytes("image{:07}".format(len(res_buffer)),
