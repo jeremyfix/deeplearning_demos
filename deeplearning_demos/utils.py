@@ -14,7 +14,7 @@ class CV2JpegHandler:
 
     def compress(self, cv2_img):
         _, buf = cv2.imencode('.jpg', cv2_img, self.encode_params)
-        return buf.tobytes()
+        return buf.tobytes(), cv2_img.copy()
 
     def decompress(self, img_buffer):
         img_array = np.frombuffer(img_buffer, dtype=np.dtype('uint8'))
@@ -29,7 +29,7 @@ class TurboJpegHandler(object):
         self.jpeg = TurboJPEG()
 
     def compress(self, cv2_img):
-        return self.jpeg.encode(cv2_img, quality=self.jpeg_quality)
+        return self.jpeg.encode(cv2_img, quality=self.jpeg_quality), cv2_img.copy()
 
     def decompress(self, img_buffer):
         return self.jpeg.decode(img_buffer)
