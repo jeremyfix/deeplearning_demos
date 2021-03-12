@@ -1,5 +1,5 @@
 library: detectron2
 library_options:
-    cfg_file: "../configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
+    cfg_file: "./model_zoo/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
     weights: "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
     output: 'instance'
