@@ -1,5 +1,5 @@
 library: detectron2
 library_options:
-    cfg_file: "../configs/COCO-PanopticSegmentation/panoptic_fpn_R_101_3x.yaml"
+    cfg_file: "./model_zoo/configs/COCO-PanopticSegmentation/panoptic_fpn_R_101_3x.yaml"
     weights: "detectron2://COCO-PanopticSegmentation/panoptic_fpn_R_101_3x/139514519/model_final_cafdb1.pkl"
     output: 'panoptic'
