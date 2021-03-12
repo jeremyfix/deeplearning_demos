@@ -99,7 +99,7 @@ Then you can start the server with for example :
 
 And then the client
 
-    dldemos_client --port localhost --port 6008 
+    dldemos_client --host localhost --port 6008 
 
 ### Semantic segmentation pytorch (MIT CSAIL)
 
@@ -126,7 +126,7 @@ Then you can start the server with for example :
 
 And then the client
 
-    dldemos_client --port localhost --port 6008 
+    dldemos_client --host localhost --port 6008 
 
 ## Depth estimation
 
