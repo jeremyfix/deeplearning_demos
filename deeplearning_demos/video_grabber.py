@@ -54,9 +54,8 @@ class VideoGrabber(Thread):
         if self.buffer is not None:
             self.lock.acquire()
             cpy_buffer = self.buffer
-            cpy_img = self.img.copy()
             self.lock.release()
-            return cpy_buffer, cpy_img
+            return cpy_buffer # holds a pair of the compressed image and original image
         else:
             return None, None
 
