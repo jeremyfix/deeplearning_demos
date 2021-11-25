@@ -37,8 +37,6 @@ def main():
     parser.add_argument('--device', type=int,
                         help='The id of the camera device 0, 1, ..',
                         default=0)
-    parser.add_argument('--depth', type=int,
-                        choices=[1, 3], default=3)
 
     args = parser.parse_args()
 
@@ -47,7 +45,6 @@ def main():
     jpeg_quality = args.jpeg_quality
     resize_factor = args.resize
     device_id = args.device
-    depth = args.depth
 
     cv2.namedWindow("Image")
     cv2.namedWindow("Output")
@@ -67,9 +64,6 @@ def main():
                                              device_id)
         grabber.start()
         get_buffer = grabber.get_buffer
-
-    # img = cv2.imread("monarch.png", cv2.IMREAD_UNCHANGED)
-    # get_buffer = lambda: utils.encode_image(img, jpeg, jpeg_quality)
 
     # A temporary buffer in which the received data will be copied
     # this prevents creating a new buffer all the time
@@ -124,10 +118,9 @@ def main():
 
             # Transaction is done, we now process/display the received image
             output = jpeg_handler.decompress(img_view[:img_size])
-            if depth == 3:
+            if(len(output.shape) == 3 and output.shape[-1] == 3):
                 output = cv2.cvtColor(output, cv2.COLOR_RGB2BGR)
-            else:
-                print("Min max : {} , {}".format(output.min(), output.max()))
+                orig_img = cv2.cvtColor(orig_img, cv2.COLOR_RGB2BGR)
 
             cv2.imwrite('output.jpg', output)
             cv2.imshow("Image", orig_img)
