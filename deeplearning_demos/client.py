@@ -134,8 +134,7 @@ def main():
             idx += 1
             if idx == 30:
                 t1 = time.time()
-                sys.stdout.write("\r {:.3} images/second ; msg size : {}    ".
-                                 format(30/(t1-t0), img_size))
+                sys.stdout.write(f"\r {30/(t1-t0):.3} images/second ; msg size : {img_size} ; Image size : {orig_img.shape[0]}x{orig_img.shape[1]}              ")
                 sys.stdout.flush()
                 t0 = t1
                 idx = 0
