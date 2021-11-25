@@ -1,6 +1,3 @@
-[submodule "deeplearning_libs/detectron2"]
-	path = deeplearning_libs/detectron2
-	url = https://github.com/facebookresearch/detectron2.git
 [submodule "deeplearning_libs/bts"]
 	path = deeplearning_libs/bts
 	url = https://github.com/cogaplex-bts/bts.git
