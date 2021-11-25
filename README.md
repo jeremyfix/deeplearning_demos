@@ -81,12 +81,11 @@ In the following, we denote the variable DEEPLEARNING_DEMOS_PATH the path of the
 
 ### Detectron2
 
-Here, we use detectron2 from facebook research [github link](https://github.com/facebookresearch/detectron2/). That repository is cloned in the deeplearning_libs subdir. So
+Here, we use detectron2 from facebook research [github link](https://github.com/facebookresearch/detectron2/). 
 
-	cd deeplearning_libs
+Fortunately, detectron2 provides very easy to use installers on Linux and I recommand you to follow their [procedure for
+installing from pre-built](https://github.com/facebookresearch/detectron2/blob/main/INSTALL.md#install-pre-built-detectron2-linux-only). At the time of writting, I succesfully tested with detectron2 v0.6, on torch 1.9 with cuda 11.1.
 
-and then follow the installation instructions on the [detectron2 website](https://github.com/facebookresearch/detectron2/blob/master/INSTALL.md).
-	
 Once installed, you should be able to:
 
 	python3 -c "import detectron2; from detectron2 import _C"
@@ -100,6 +99,9 @@ Then you can start the server with for example :
 And then the client
 
     dldemos_client --host localhost --port 6008 
+
+Note that if you run the dldemos_server on a remote host, a simple ssh tunnel to forward the port 6008 on your home
+machine and you can then send an image grabbed locally on the remote host for processing and getting back the results.
 
 ### Semantic segmentation pytorch (MIT CSAIL)
 
