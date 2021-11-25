@@ -70,7 +70,11 @@ We also need python3-opencv :
 By default, we use it OpenCV for JPEG encoding the image we send over the network but if you want, you can also use TurboJPEG which requires an additional dependency:
 
     python3 -m pip install --user PyTurboJPEG
+    
+you may also need to install the libturbojpeg :
 
+    sudo apt install libturbojpeg0-dev
+    
 Then you can clone clone the repository:
 
 	git clone --recursive https://github.com/jeremyfix/deeplearning_demos.git
