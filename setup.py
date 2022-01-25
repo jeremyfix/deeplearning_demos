@@ -12,6 +12,7 @@ setup(
     install_requires = ["wget"],
     entry_points={
         'console_scripts': ['dldemos_server=deeplearning_demos.dlserver:main',
-                            'dldemos_client=deeplearning_demos.client:main']
+                            'dldemos_client=deeplearning_demos.client:main',
+                            'dldemos_dmoz=deeplearning_demos.dmoz:main']
     }
 )
