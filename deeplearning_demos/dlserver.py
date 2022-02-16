@@ -8,8 +8,8 @@ It performs the semantic segmentation and returns the segmented image
 import argparse
 import os
 import socket
-import yaml
 # External modules
+import yaml
 import numpy as np
 from PIL import Image
 import torch

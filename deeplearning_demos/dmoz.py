@@ -5,11 +5,11 @@
 import subprocess
 import pathlib
 import os
-import yaml
 import argparse
 import socket
 # External modules
 import torch
+import yaml
 # Local modules
 import deeplearning_demos
 from deeplearning_demos.models.detectron2 import Detectron2
