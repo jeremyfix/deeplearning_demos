@@ -34,6 +34,9 @@ def main():
     parser.add_argument('--image', type=str,
                         help='Image file to be processed',
                         default=None)
+    parser.add_argument('--video', type=str,
+                        help='Video file to be processed',
+                        default=None)
     parser.add_argument('--device', type=int,
                         help='The id of the camera device 0, 1, ..',
                         default=0)
@@ -57,6 +60,14 @@ def main():
         grabber = None
         img = cv2.imread(args.image, cv2.IMREAD_UNCHANGED)
         get_buffer = functools.partial(jpeg_handler.compress, cv2_img=img)
+    elif args.video is not None:
+        grabber = None
+        cap = cv2.VideoCapture(args.video)
+        def get_buffer():
+            success, img = cap.read()
+            return jpeg_handler.compress(cv2.cvtColor(img, 
+                                                      cv2.COLOR_BGR2RGB))
+            
     else:
         grabber = video_grabber.VideoGrabber(jpeg_quality,
                                              args.encoder,
