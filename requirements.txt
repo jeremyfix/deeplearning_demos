@@ -7,4 +7,4 @@ torch==1.10.2+cu113
 torchvision==0.11.3+cu113
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
 detectron2==0.6+cu113
-PyYAML==5.3.1
+PyYAML==5.4
