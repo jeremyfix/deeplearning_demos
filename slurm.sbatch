@@ -16,8 +16,10 @@ echo "Running on $(hostname)"
 echo ""
 echo "Cloning the repo"
 cd $TMPDIR/
+rm -rf $TMPDIR/deeplearning_demos
 git clone https://github.com/jeremyfix/deeplearning_demos.git
 cd deeplearning_demos
+git checkout virtualenv_sbatch
 
 echo ""
 echo "Creating the virtualenv"
@@ -25,7 +27,9 @@ echo "Creating the virtualenv"
 python3 -m pip install virtualenv --user
 virtualenv -p python3 venv
 source venv/bin/activate
+ls
 python -m pip install -r requirements.txt
+python -m pip install .
 
 echo ""
 echo "Running"
