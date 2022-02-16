@@ -161,3 +161,9 @@ Given the depth image is a one channel image, the client needs to be run with a 
 
     dldemos_client --host localhost --port 6008 --depth 1
 
+
+## Using a virtualenv
+
+	virtualenv -p python3 venv
+	source venv/bin/activate
+	python -m pip install -r requirements.txt
