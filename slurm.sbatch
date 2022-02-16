@@ -19,7 +19,6 @@ cd $TMPDIR/
 rm -rf $TMPDIR/deeplearning_demos
 git clone https://github.com/jeremyfix/deeplearning_demos.git
 cd deeplearning_demos
-git checkout virtualenv_sbatch
 
 echo ""
 echo "Creating the virtualenv"
