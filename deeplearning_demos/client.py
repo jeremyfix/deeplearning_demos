@@ -37,6 +37,9 @@ def main():
     parser.add_argument('--video', type=str,
                         help='Video file to be processed',
                         default=None)
+    parser.add_argument('--output', type=str,
+                        help='Output video filename',
+                        default=None)
     parser.add_argument('--device', type=int,
                         help='The id of the camera device 0, 1, ..',
                         default=0)
@@ -48,6 +51,7 @@ def main():
     jpeg_quality = args.jpeg_quality
     resize_factor = args.resize
     device_id = args.device
+    outvideo = None
 
     cv2.namedWindow("Image")
     cv2.namedWindow("Output")
@@ -136,7 +140,14 @@ def main():
             cv2.imwrite('output.jpg', output)
             cv2.imshow("Image", orig_img)
             cv2.imshow("Output", output)
-            
+
+            if args.output is not None:
+                if outvideo is None:
+                    outvideo = cv2.VideoWriter(args.output,
+                                               cv2.VideoWriter_fourcc('M','J','P','G'), 
+                                               10, 
+                                               (output.shape[1],output.shape[0]))
+                outvideo.write(output) 
 
             keep_running = not(cv2.waitKey(1) & 0xFF == ord('q'))
             if not keep_running:

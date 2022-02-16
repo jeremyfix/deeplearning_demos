@@ -40,9 +40,9 @@ For the server, an executable entry point dldemos_server is installed in your PA
 
 For the client, you can also use the installed entry point :
 		
-	$ segmentation_client
-    usage: segmentation_client [-h] --host HOST --port PORT [--jpeg_quality JPEG_QUALITY]
-                               [--resize RESIZE] [--encoder {cv2,turbo}] [--image IMAGE]
+	$ dldemos_client
+    usage: dldemos_client [-h] --host HOST --port PORT [--jpeg_quality JPEG_QUALITY]
+							   [--resize RESIZE] [--encoder {cv2,turbo}] [--image IMAGE] [--video VIDEO] [--output OUTPUT]
                                [--device DEVICE]
     
     optional arguments:
@@ -55,6 +55,8 @@ For the client, you can also use the installed entry point :
       --encoder {cv2,turbo}
                             Library to use to encode/decode in JPEG the images
       --image IMAGE         Image file to be processed
+	  --video VIDEO         The video file to process
+	  --output output.avi   The output file to write to
       --device DEVICE       The id of the camera device 0, 1, ..
 
 There is also a generic server server.py, doing useless stuff on an image just to show how to program one.
