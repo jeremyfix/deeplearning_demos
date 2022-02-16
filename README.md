@@ -164,6 +164,19 @@ Given the depth image is a one channel image, the client needs to be run with a 
 
 ## Using a virtualenv
 
+Experimented on Ubuntu 18.04, with python 3.6.9. The requirements.txt file expects cuda11.3.  
+
 	virtualenv -p python3 venv
 	source venv/bin/activate
 	python -m pip install -r requirements.txt
+	python -m pip install .
+
+And you can then run `dldemos_server`
+
+## Using a slurm cluster
+
+We provide a sbatch file to be run with sbatch on a cluster handled with slurm :
+
+	sbatch slurm.sbatch
+
+It will handle the creation of the virtualenv, install the libraries and start the dldemos_server on the detectron2 semantic segmentation
