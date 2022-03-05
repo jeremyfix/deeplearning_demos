@@ -6,8 +6,10 @@ import socket
 import sys
 import time
 import functools
+
 # External modules
 import cv2
+
 # Local modules
 from deeplearning_demos import video_grabber
 from deeplearning_demos import utils
@@ -16,33 +18,43 @@ from deeplearning_demos import utils
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--host', type=str,
-                        help='The IP of the echo server',
-                        required=True)
-    parser.add_argument('--port', type=int,
-                        help='The port on which the server is listening',
-                        required=True)
-    parser.add_argument('--jpeg_quality', type=int,
-                        help='The JPEG quality for compressing the reply',
-                        default=50)
-    parser.add_argument('--resize', type=float,
-                        help='Resize factor of the image',
-                        default=1.0)
-    parser.add_argument('--encoder', type=str, choices=['cv2', 'turbo'],
-                        help='Library to use to encode/decode in JPEG the images',
-                        default='cv2')
-    parser.add_argument('--image', type=str,
-                        help='Image file to be processed',
-                        default=None)
-    parser.add_argument('--video', type=str,
-                        help='Video file to be processed',
-                        default=None)
-    parser.add_argument('--output', type=str,
-                        help='Output video filename',
-                        default=None)
-    parser.add_argument('--device', type=int,
-                        help='The id of the camera device 0, 1, ..',
-                        default=0)
+    parser.add_argument(
+        "--host", type=str, help="The IP of the echo server", required=True
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        help="The port on which the server is listening",
+        required=True,
+    )
+    parser.add_argument(
+        "--jpeg_quality",
+        type=int,
+        help="The JPEG quality for compressing the reply",
+        default=50,
+    )
+    parser.add_argument(
+        "--resize", type=float, help="Resize factor of the image", default=1.0
+    )
+    parser.add_argument(
+        "--encoder",
+        type=str,
+        choices=["cv2", "turbo"],
+        help="Library to use to encode/decode in JPEG the images",
+        default="cv2",
+    )
+    parser.add_argument(
+        "--image", type=str, help="Image file to be processed", default=None
+    )
+    parser.add_argument(
+        "--video", type=str, help="Video file to be processed", default=None
+    )
+    parser.add_argument(
+        "--output", type=str, help="Output video filename", default=None
+    )
+    parser.add_argument(
+        "--device", type=int, help="The id of the camera device 0, 1, ..", default=0
+    )
 
     args = parser.parse_args()
 
@@ -67,16 +79,15 @@ def main():
     elif args.video is not None:
         grabber = None
         cap = cv2.VideoCapture(args.video)
+
         def get_buffer():
             success, img = cap.read()
-            return jpeg_handler.compress(cv2.cvtColor(img, 
-                                                      cv2.COLOR_BGR2RGB))
-            
+            return jpeg_handler.compress(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+
     else:
-        grabber = video_grabber.VideoGrabber(jpeg_quality,
-                                             args.encoder,
-                                             resize_factor,
-                                             device_id)
+        grabber = video_grabber.VideoGrabber(
+            jpeg_quality, args.encoder, resize_factor, device_id
+        )
         grabber.start()
         get_buffer = grabber.get_buffer
 
@@ -113,50 +124,55 @@ def main():
 
             # Read the reply command
             utils.recv_data_into(sock, tmp_view[:5], 5)
-            cmd = tmp_buf[:5].decode('ascii')
+            cmd = tmp_buf[:5].decode("ascii")
 
-            if cmd != 'image':
+            if cmd != "image":
                 raise RuntimeError("Unexpected server reply")
 
             # Read the image buffer size
             utils.recv_data_into(sock, tmp_view, 7)
-            img_size = int(tmp_buf.decode('ascii'))
+            img_size = int(tmp_buf.decode("ascii"))
 
             # Read the image buffer
             utils.recv_data_into(sock, img_view[:img_size], img_size)
 
             # Read the final handshake
-            cmd = utils.recv_data(sock, 5).decode('ascii')
-            if cmd != 'enod!':
-                raise RuntimeError("Unexpected server reply. Expected 'enod!'"
-                                   ", got '{}'".format(cmd))
+            cmd = utils.recv_data(sock, 5).decode("ascii")
+            if cmd != "enod!":
+                raise RuntimeError(
+                    "Unexpected server reply. Expected 'enod!'" ", got '{}'".format(cmd)
+                )
 
             # Transaction is done, we now process/display the received image
             output = jpeg_handler.decompress(img_view[:img_size])
-            if(len(output.shape) == 3 and output.shape[-1] == 3):
+            if len(output.shape) == 3 and output.shape[-1] == 3:
                 output = cv2.cvtColor(output, cv2.COLOR_RGB2BGR)
                 orig_img = cv2.cvtColor(orig_img, cv2.COLOR_RGB2BGR)
 
-            cv2.imwrite('output.jpg', output)
+            cv2.imwrite("output.jpg", output)
             cv2.imshow("Image", orig_img)
             cv2.imshow("Output", output)
 
             if args.output is not None:
                 if outvideo is None:
-                    outvideo = cv2.VideoWriter(args.output,
-                                               cv2.VideoWriter_fourcc('M','J','P','G'), 
-                                               10, 
-                                               (output.shape[1],output.shape[0]))
-                outvideo.write(output) 
+                    outvideo = cv2.VideoWriter(
+                        args.output,
+                        cv2.VideoWriter_fourcc("M", "J", "P", "G"),
+                        10,
+                        (output.shape[1], output.shape[0]),
+                    )
+                outvideo.write(output)
 
-            keep_running = not(cv2.waitKey(1) & 0xFF == ord('q'))
+            keep_running = not (cv2.waitKey(1) & 0xFF == ord("q"))
             if not keep_running:
-                sock.sendall('quit!'.encode('ascii'))
+                sock.sendall("quit!".encode("ascii"))
 
             idx += 1
             if idx == 30:
                 t1 = time.time()
-                sys.stdout.write(f"\r {30/(t1-t0):.3} images/second ; msg size : {img_size} ; Image size : {orig_img.shape[0]}x{orig_img.shape[1]}              ")
+                sys.stdout.write(
+                    f"\r {30/(t1-t0):.3} images/second ; msg size : {img_size} ; Image size : {orig_img.shape[0]}x{orig_img.shape[1]}              "
+                )
                 sys.stdout.flush()
                 t0 = t1
                 idx = 0
@@ -167,5 +183,5 @@ def main():
             grabber.stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
