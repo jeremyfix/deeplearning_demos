@@ -4,7 +4,8 @@ version = "0.0.1"
 
 dependencies = [
     "opencv-python-headless",
-    "numpy"
+    "numpy",
+    "whiptail-dialogs"
 ]
 
 [tool.setuptools]

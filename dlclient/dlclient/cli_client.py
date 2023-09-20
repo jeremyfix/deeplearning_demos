@@ -15,6 +15,9 @@ import sys
 import argparse
 import socket
 
+# Local imports
+from dlclient.client import Client
+
 
 def main():
 
@@ -37,11 +40,8 @@ def main():
     )
     args = parser.parse_args()
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((args.hostname, args.port))
-        sock.sendall(bytes("list", "ascii"))
-        response = str(sock.recv(1024), "ascii")
-        print(response)
+    client = Client(args.hostname, args.port)
+    client.run()
 
 
 if __name__ == "__main__":
