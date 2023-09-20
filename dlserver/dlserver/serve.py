@@ -22,7 +22,7 @@ from dlserver.config import load_config
 
 def main():
 
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format="%(message)s")
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

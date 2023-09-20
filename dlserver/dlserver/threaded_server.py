@@ -26,6 +26,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             # command = str(self.request.recv(1024), "ascii")
             # logging.info(f"Handling {command} from {self.client_address}")
             self.fsm.step(self.request)
+        logging.debug("Handler finished the transaction")
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
