@@ -35,5 +35,4 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             server_address=("localhost", port),
             RequestHandlerClass=ThreadedTCPRequestHandler,
         )
-        print(config)
-        self.models = {}
+        self.models = config

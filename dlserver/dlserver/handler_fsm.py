@@ -20,8 +20,11 @@ MasterStates = Enum("MasterStates", ["INIT", "FINAL"])
 
 
 class MasterStateMachine:
+
+    MASTER_COMMAND_LENGTH = 5
+
     def __init__(self, models):
-        self.tmp_buffer = bytearray(7)
+        self.tmp_buffer = bytearray(self.MASTER_COMMAND_LENGTH)
         self.tmp_view = memoryview(self.tmp_buffer)
 
         self.keeps_running = True
@@ -36,16 +39,20 @@ class MasterStateMachine:
             }
         }
 
-    def on_list(self):
+    def on_list(self, request):
         logging.debug("on_list")
+        model_list = bytes("\n".join([m["name"] for m in self.models]), "ascii")
+        reply = bytes(f"list{len(model_list):07}", "ascii")
+        utils.send_data(request, reply)
+        utils.send_data(request, model_list)
         return MasterStates.INIT
 
-    def on_quit(self):
+    def on_quit(self, request):
         logging.debug("on_quit")
         self.keeps_running = False
         return MasterStates.FINAL
 
-    def on_select(self):
+    def on_select(self, request):
         logging.debug("on_select")
         return MasterStates.INIT
 
@@ -59,12 +66,20 @@ class MasterStateMachine:
                 # which sends the command followed by \n
                 # If we test with telnet, it sends \r\n , so we should
                 # read 2 extra byets
-                utils.recv_data_into(request, self.tmp_view[:5], 5)
+                utils.recv_data_into(
+                    request,
+                    self.tmp_view[: self.MASTER_COMMAND_LENGTH],
+                    self.MASTER_COMMAND_LENGTH,
+                )
                 # rstrip is usefull when using nc
-                cmd = self.tmp_buffer[:5].decode("ascii").rstrip()
+                cmd = (
+                    self.tmp_buffer[: self.MASTER_COMMAND_LENGTH]
+                    .decode("ascii")
+                    .rstrip()
+                )
                 allowed_commands = self.transitions[self.current_state]
                 if cmd in allowed_commands:
-                    self.current_state = allowed_commands[cmd]()
+                    self.current_state = allowed_commands[cmd](request)
                 else:
                     logging.info(f"Got an unrecognized command {cmd}")
         except RuntimeError as e:
