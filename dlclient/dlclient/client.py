@@ -25,7 +25,7 @@ ClientStates = Enum("ClientStates", ["INIT", "SELECT", "QUIT", "FINAL"])
 class Client:
 
     MASTER_COMMAND_LENGTH = 4
-    MSG_LENGTH_NUMBYTES = 7
+    MSG_LENGTH_NUMBYTES = 7  # be carefull, there are magic numbers below for this value
 
     def __init__(self, hostname, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -62,7 +62,7 @@ class Client:
 
         # Read the message
         utils.recv_data_into(self.sock, self.data_view[:msg_length], msg_length)
-        model_list = self.data_buf.decode("ascii")[:msg_length].split("\n")
+        model_list = self.data_buf[:msg_length].decode("ascii")[:msg_length].split("\n")
 
         self.selected_model, cancel = self.whiptail.menu(
             "Select the model you want to run. Cancel to quit", model_list
@@ -73,6 +73,15 @@ class Client:
             return ClientStates.SELECT
 
     def select(self):
+        # Send to the server the selected model
+        msg = bytes(self.selected_model, "ascii")
+        select_header = bytes(f"slct{len(msg):07}", "ascii")
+        utils.send_data(self.sock, select_header)
+        utils.send_data(self.sock, msg)
+
+        # TODO: wait until the server is ready to get and process
+        # incoming data
+
         return ClientStates.INIT
 
     def quit(self):

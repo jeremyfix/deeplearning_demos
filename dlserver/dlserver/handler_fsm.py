@@ -22,10 +22,14 @@ MasterStates = Enum("MasterStates", ["INIT", "FINAL"])
 class MasterStateMachine:
 
     MASTER_COMMAND_LENGTH = 4
+    MSG_LENGTH_NUMBYTES = 7  # be carefull, there are magic numbers below for this value
 
     def __init__(self, models):
-        self.tmp_buffer = bytearray(self.MASTER_COMMAND_LENGTH)
+        self.tmp_buffer = bytearray(self.MSG_LENGTH_NUMBYTES)
         self.tmp_view = memoryview(self.tmp_buffer)
+
+        self.data_buf = bytearray(9999999)
+        self.data_view = memoryview(self.data_buf)
 
         self.keeps_running = True
         self.models = models
@@ -54,6 +58,16 @@ class MasterStateMachine:
 
     def on_select(self, request):
         logging.debug("on_select")
+
+        # Read the message length
+        utils.recv_data_into(request, self.tmp_view, self.MSG_LENGTH_NUMBYTES)
+        msg_length = int(self.tmp_buffer.decode("ascii"))
+
+        # Read the message
+        utils.recv_data_into(request, self.data_view[:msg_length], msg_length)
+        model_name = self.data_buf.decode("ascii")[:msg_length]
+        logging.info(f"Loading {model_name}")
+
         return MasterStates.INIT
 
     def step(self, request):
@@ -72,11 +86,7 @@ class MasterStateMachine:
                     self.MASTER_COMMAND_LENGTH,
                 )
                 # rstrip is usefull when using nc
-                cmd = (
-                    self.tmp_buffer[: self.MASTER_COMMAND_LENGTH]
-                    .decode("ascii")
-                    .rstrip()
-                )
+                cmd = self.tmp_buffer[: self.MASTER_COMMAND_LENGTH].decode("ascii")
                 allowed_commands = self.transitions[self.current_state]
                 if cmd in allowed_commands:
                     self.current_state = allowed_commands[cmd](request)
@@ -91,7 +101,8 @@ class MasterStateMachine:
 
 
 ModelStates = Enum(
-    "ModelStates", ["INIT", "READY", "PREPROCESS", "PROCESS", "POSTPROCES", "FINAL"]
+    "ModelStates",
+    ["INIT", "READY", "PREPROCESS", "PROCESS", "POSTPROCESS", "RELEASE", "FINAL"],
 )
 
 
@@ -99,37 +110,45 @@ class ModelStateMachine:
     def __init__(self, request):
         self.current_state = ModelStates.INIT
         self.request = request
+        self.callbacks = {
+            ModelStates.READY: self.on_ready,
+            ModelStates.PREPROCESS: self.on_preprocess,
+            ModelStates.PROCESS: self.on_process,
+            ModelStates.POSTPROCESS: self.on_postprocess,
+            ModelStates.RELEASE: self.on_release,
+        }
 
-    def on_init(self, request):
+    def on_init(self):
         # Prepare the model, i.e. preload all the things
         # we need to do the job
         # Preprocessing, postprocessing functions
         # and the model (e.g. onnx download and load)
-        pass
+        return ModelStates.READY
 
-    def on_reasy(self, request):
+    def on_ready(self):
         # Listen for the command either data or quit
-        pass
+        return ModelStates.PREPROCESS
 
-    def on_preprocess(self, request):
+    def on_preprocess(self):
         # We got some data, we need to preprocess them
-        pass
+        return ModelStates.PROCESS
 
-    def on_process(self, request):
+    def on_process(self):
         # We got a preprocesse data, we need to perform inference
         # with the neural net
-        pass
+        return ModelStates.POSTPROCESS
 
-    def on_postprocess(self, request):
+    def on_postprocess(self):
         # We got the output of the model,
         # we need to postprocess the result, send it to the client
         # and loop back to the READY state
         pass
 
-    def on_release(self, request):
+    def on_release(self):
         # We are asked to stop using this model
         # We release the data and die
-        pass
+        return ModelStates.FINAL
 
     def step(self):
-        pass
+        while self.current_state != ModelStates.FINAL:
+            self.current_state = self.callbacks[self.current_state]()
