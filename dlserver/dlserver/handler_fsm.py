@@ -21,7 +21,7 @@ MasterStates = Enum("MasterStates", ["INIT", "FINAL"])
 
 class MasterStateMachine:
 
-    MASTER_COMMAND_LENGTH = 5
+    MASTER_COMMAND_LENGTH = 4
 
     def __init__(self, models):
         self.tmp_buffer = bytearray(self.MASTER_COMMAND_LENGTH)
