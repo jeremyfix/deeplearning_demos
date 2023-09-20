@@ -88,3 +88,48 @@ class MasterStateMachine:
             )
             self.current_state = MasterStates.FINAL
             self.keeps_running = False
+
+
+ModelStates = Enum(
+    "ModelStates", ["INIT", "READY", "PREPROCESS", "PROCESS", "POSTPROCES", "FINAL"]
+)
+
+
+class ModelStateMachine:
+    def __init__(self, request):
+        self.current_state = ModelStates.INIT
+        self.request = request
+
+    def on_init(self, request):
+        # Prepare the model, i.e. preload all the things
+        # we need to do the job
+        # Preprocessing, postprocessing functions
+        # and the model (e.g. onnx download and load)
+        pass
+
+    def on_reasy(self, request):
+        # Listen for the command either data or quit
+        pass
+
+    def on_preprocess(self, request):
+        # We got some data, we need to preprocess them
+        pass
+
+    def on_process(self, request):
+        # We got a preprocesse data, we need to perform inference
+        # with the neural net
+        pass
+
+    def on_postprocess(self, request):
+        # We got the output of the model,
+        # we need to postprocess the result, send it to the client
+        # and loop back to the READY state
+        pass
+
+    def on_release(self, request):
+        # We are asked to stop using this model
+        # We release the data and die
+        pass
+
+    def step(self):
+        pass
