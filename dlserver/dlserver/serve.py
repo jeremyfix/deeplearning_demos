@@ -45,6 +45,8 @@ def main():
 
     logging.info("Loading {}".format(args.config))
     config = load_config(args.config)
+    if config is None:
+        return
 
     # Builds up the server
     server = ThreadedTCPServer(args.port, config)
