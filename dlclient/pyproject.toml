@@ -1,0 +1,14 @@
+[project]
+name = "dlclient"
+version = "0.0.1"
+
+dependencies = [
+    "opencv-python-headless",
+    "numpy"
+]
+
+[tool.setuptools]
+packages = ["dlclient"]
+
+[project.scripts]
+dlclient_cli = "dlclient.cli_client:main"
