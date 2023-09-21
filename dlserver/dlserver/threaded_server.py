@@ -36,3 +36,4 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             RequestHandlerClass=ThreadedTCPRequestHandler,
         )
         self.models = config
+        print(self.models)

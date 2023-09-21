@@ -45,7 +45,7 @@ class MasterStateMachine:
 
     def on_list(self, request):
         logging.debug("on_list")
-        model_list = bytes("\n".join([m["name"] for m in self.models]), "ascii")
+        model_list = bytes("\n".join([m for m in self.models]), "ascii")
         reply = bytes(f"list{len(model_list):07}", "ascii")
         utils.send_data(request, reply)
         utils.send_data(request, model_list)
@@ -67,6 +67,10 @@ class MasterStateMachine:
         utils.recv_data_into(request, self.data_view[:msg_length], msg_length)
         model_name = self.data_buf.decode("ascii")[:msg_length]
         logging.info(f"Loading {model_name}")
+
+        # We delegate the FSM to the sub-FSM of the model
+        model_fsm = ModelStateMachine(request, self.models[model_name])
+        model_fsm.step()
 
         return MasterStates.INIT
 
@@ -107,10 +111,24 @@ ModelStates = Enum(
 
 
 class ModelStateMachine:
-    def __init__(self, request):
+    def __init__(self, request, model: dict):
+        """
+        request: socket.socket
+            the socket to discuss with the client
+
+        model: dict
+            name:
+            url:
+            input_type
+            preprocessing:
+            postprocessing:
+            output_type:
+
+        """
         self.current_state = ModelStates.INIT
         self.request = request
         self.callbacks = {
+            ModelStates.INIT: self.on_init,
             ModelStates.READY: self.on_ready,
             ModelStates.PREPROCESS: self.on_preprocess,
             ModelStates.PROCESS: self.on_process,
@@ -142,7 +160,7 @@ class ModelStateMachine:
         # We got the output of the model,
         # we need to postprocess the result, send it to the client
         # and loop back to the READY state
-        pass
+        return ModelStates.FINAL
 
     def on_release(self):
         # We are asked to stop using this model
