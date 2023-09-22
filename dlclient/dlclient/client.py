@@ -22,7 +22,10 @@ from dlclient import utils
 
 ClientStates = Enum("ClientStates", ["INIT", "SELECT", "QUIT", "FINAL"])
 
-MSG_LENGTH_NUMBYTES = 7  # be carefull, there are magic numbers below for this value
+# Number of bytes for encoding the command and the message length
+# be carefull, there are magic numbers below for these values
+# in send_command and send_data
+MSG_LENGTH_NUMBYTES = 7
 MASTER_COMMAND_LENGTH = 6
 
 
@@ -72,7 +75,6 @@ def read_data(request):
 
 def send_command(request, cmd):
     reply = bytes(f"{cmd:6s}", "ascii")
-    logging.debug(f"Sending '{cmd:6s}'")
     utils.send_data(request, reply)
 
 
