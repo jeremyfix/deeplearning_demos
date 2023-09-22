@@ -32,32 +32,33 @@ class CommandParserSingletonMeta(type):
         return cls._instance
 
 
+MSG_LENGTH_NUMBYTES = 7  # be carefull, there are magic numbers below for this value
+MASTER_COMMAND_LENGTH = 6
+
+
 class CommandParser(metaclass=CommandParserSingletonMeta):
-
-    MSG_LENGTH_NUMBYTES = 7  # be carefull, there are magic numbers below for this value
-    MASTER_COMMAND_LENGTH = 4
-
     def __init__(self):
-        self.tmp_buffer = bytearray(self.MSG_LENGTH_NUMBYTES)
+        self.tmp_buffer = bytearray(MSG_LENGTH_NUMBYTES)
         self.tmp_view = memoryview(self.tmp_buffer)
 
         self.data_buf = bytearray(9999999)
         self.data_view = memoryview(self.data_buf)
 
-    def parse_command(self, request):
+    def read_command(self, request):
         utils.recv_data_into(
             request,
-            self.tmp_view[: self.MASTER_COMMAND_LENGTH],
-            self.MASTER_COMMAND_LENGTH,
+            self.tmp_view[:MASTER_COMMAND_LENGTH],
+            MASTER_COMMAND_LENGTH,
         )
+
         # rstrip is usefull when using nc
-        cmd = self.tmp_buffer[: self.MASTER_COMMAND_LENGTH].decode("ascii")
+        cmd = self.tmp_buffer[:MASTER_COMMAND_LENGTH].decode("ascii")
 
         return cmd
 
-    def parse_data(self, request):
+    def read_data(self, request):
         # Read the num bytes of the data
-        utils.recv_data_into(request, self.tmp_view, self.MSG_LENGTH_NUMBYTES)
+        utils.recv_data_into(request, self.tmp_view, MSG_LENGTH_NUMBYTES)
         msg_length = int(self.tmp_buffer.decode("ascii"))
 
         # Read the message
@@ -66,18 +67,26 @@ class CommandParser(metaclass=CommandParserSingletonMeta):
         return self.data_buf[:msg_length]
 
 
-def parse_command(request):
+def read_command(request):
     parser = CommandParser()
-    return parser.parse_command(request)
+    cmd = parser.read_command(request)
+    # Possibly remove the padding value
+    return cmd.rstrip()
 
 
-def parse_data(request):
+def read_data(request):
     parser = CommandParser()
-    return parser.parse_data(request)
+    return parser.read_data(request)
 
 
-def send_data(request, cmd, msg):
-    reply = bytes(f"{cmd}{len(msg):07}", "ascii")
+def send_command(request, cmd):
+    reply = bytes(f"{cmd:6s}", "ascii")
+    logging.debug(f"Sending '{cmd:6s}'")
+    utils.send_data(request, reply)
+
+
+def send_data(request, msg):
+    reply = bytes(f"{len(msg):07}", "ascii")
     utils.send_data(request, reply)
     utils.send_data(request, msg)
 
@@ -98,7 +107,8 @@ class MasterStateMachine:
 
     def on_list(self, request):
         logging.debug("on_list")
-        send_data(request, "list", bytes("\n".join([m for m in self.models]), "ascii"))
+        send_command(request, "list")
+        send_data(request, bytes("\n".join([m for m in self.models]), "ascii"))
         return MasterStates.INIT
 
     def on_quit(self, request):
@@ -109,8 +119,8 @@ class MasterStateMachine:
     def on_select(self, request):
         logging.debug("on_select")
 
-        model_name = parse_data(request).decode("ascii")
-        logging.info(f"Loading {model_name}")
+        model_name = read_data(request).decode("ascii")
+        logging.debug(f"Loading {model_name}")
 
         # We delegate the FSM to the sub-FSM of the model
         model_fsm = ModelStateMachine(request, self.models[model_name])
@@ -124,7 +134,8 @@ class MasterStateMachine:
                 logging.debug(f"In state {self.current_state}")
 
                 # Read the command
-                cmd = parse_command(request)
+                cmd = read_command(request)
+                logging.info(f"got {cmd}")
                 allowed_commands = self.transitions[self.current_state]
                 if cmd in allowed_commands:
                     self.current_state = allowed_commands[cmd](request)
@@ -175,12 +186,15 @@ class ModelStateMachine:
         # we need to do the job
         # Preprocessing, postprocessing functions
         # and the model (e.g. onnx download and load)
+
+        # If success, loop to READY
+        # TODO : if fail, loop to release
         return ModelStates.READY
 
     def on_ready(self):
         # Listen for the command either data or quit
         # We are now ready and we indicate the client we are ready
-
+        send_command(self.request, "ready")
         return ModelStates.PREPROCESS
 
     def on_preprocess(self):

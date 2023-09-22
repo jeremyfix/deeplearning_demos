@@ -8,7 +8,6 @@
 
 # You should have received a copy of the GNU General Public License along with dlclient. If not, see <https://www.gnu.org/licenses/>.
 
-
 # External modules
 import cv2
 import numpy as np

@@ -12,6 +12,7 @@
 # Standard imports
 import socket
 from enum import Enum
+import logging
 
 # External imports
 from whiptail import Whiptail
@@ -21,22 +22,72 @@ from dlclient import utils
 
 ClientStates = Enum("ClientStates", ["INIT", "SELECT", "QUIT", "FINAL"])
 
+MSG_LENGTH_NUMBYTES = 7  # be carefull, there are magic numbers below for this value
+MASTER_COMMAND_LENGTH = 6
+
+
+class CommandParser:
+    def __init__(self):
+        self.tmp_buffer = bytearray(MSG_LENGTH_NUMBYTES)
+        self.tmp_view = memoryview(self.tmp_buffer)
+
+        self.data_buf = bytearray(9999999)
+        self.data_view = memoryview(self.data_buf)
+
+    def read_command(self, request):
+        utils.recv_data_into(
+            request,
+            self.tmp_view[:MASTER_COMMAND_LENGTH],
+            MASTER_COMMAND_LENGTH,
+        )
+
+        # rstrip is usefull when using nc
+        cmd = self.tmp_buffer[:MASTER_COMMAND_LENGTH].decode("ascii")
+
+        return cmd
+
+    def read_data(self, request):
+        # Read the num bytes of the data
+        utils.recv_data_into(request, self.tmp_view, MSG_LENGTH_NUMBYTES)
+        msg_length = int(self.tmp_buffer.decode("ascii"))
+        print(f"Mesg length {msg_length}")
+
+        # Read the message
+        utils.recv_data_into(request, self.data_view[:msg_length], msg_length)
+
+        return self.data_buf[:msg_length]
+
+
+def read_command(request):
+    parser = CommandParser()
+    cmd = parser.read_command(request)
+    # Possibly remove the padding value
+    return cmd.rstrip()
+
+
+def read_data(request):
+    parser = CommandParser()
+    return parser.read_data(request)
+
+
+def send_command(request, cmd):
+    reply = bytes(f"{cmd:6s}", "ascii")
+    logging.debug(f"Sending '{cmd:6s}'")
+    utils.send_data(request, reply)
+
+
+def send_data(request, msg):
+    reply = bytes(f"{len(msg):07}", "ascii")
+    utils.send_data(request, reply)
+    utils.send_data(request, msg)
+
 
 class Client:
-
-    MASTER_COMMAND_LENGTH = 4
-    MSG_LENGTH_NUMBYTES = 7  # be carefull, there are magic numbers below for this value
-
     def __init__(self, hostname, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((hostname, port))
         self.current_state = ClientStates.INIT
         self.keep_running = True
-        self.tmp_buf = bytearray(self.MSG_LENGTH_NUMBYTES)
-        self.tmp_view = memoryview(self.tmp_buf)
-
-        self.data_buf = bytearray(9999999)
-        self.data_view = memoryview(self.data_buf)
 
         self.selected_model = None
 
@@ -51,18 +102,12 @@ class Client:
         }
 
     def get_list(self):
-        request = bytes("list", "ascii")
-        utils.send_data(self.sock, request)
-        cmd = utils.recv_data(self.sock, self.MASTER_COMMAND_LENGTH).decode("ascii")
+        send_command(self.sock, "list")
+        cmd = read_command(self.sock)
         if cmd != "list":
-            raise RuntimeError("Unexpected server reply")
-        # Read the message length
-        utils.recv_data_into(self.sock, self.tmp_view, self.MSG_LENGTH_NUMBYTES)
-        msg_length = int(self.tmp_buf.decode("ascii"))
-
-        # Read the message
-        utils.recv_data_into(self.sock, self.data_view[:msg_length], msg_length)
-        model_list = self.data_buf[:msg_length].decode("ascii")[:msg_length].split("\n")
+            raise RuntimeError(f"Unexpected server reply, got {cmd}, expected 'list'")
+        model_list = read_data(self.sock).decode("ascii").split("\n")
+        print(model_list)
 
         self.selected_model, cancel = self.whiptail.menu(
             "Select the model you want to run. Cancel to quit", model_list
@@ -75,18 +120,21 @@ class Client:
     def select(self):
         # Send to the server the selected model
         msg = bytes(self.selected_model, "ascii")
-        select_header = bytes(f"slct{len(msg):07}", "ascii")
-        utils.send_data(self.sock, select_header)
-        utils.send_data(self.sock, msg)
+
+        send_command(self.sock, "slct")
+        send_data(self.sock, msg)
 
         # TODO: wait until the server is ready to get and process
         # incoming data
+        cmd = read_command(self.sock)
+        print(f"Received : {cmd}")
 
         return ClientStates.INIT
 
     def quit(self):
-        request = bytes("quit", "ascii")
-        utils.send_data(self.sock, request)
+        # request = bytes("quit", "ascii")
+        # utils.send_data(self.sock, request)
+        send_command(self.sock, "quit")
         self.keep_running = False
         return ClientStates.FINAL
 
