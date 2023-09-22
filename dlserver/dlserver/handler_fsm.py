@@ -11,6 +11,7 @@
 # Standard imports
 import logging
 from enum import Enum
+from threading import Lock
 
 # Local imports
 from dlserver import utils
@@ -19,18 +20,70 @@ from dlserver import utils
 MasterStates = Enum("MasterStates", ["INIT", "FINAL"])
 
 
-class MasterStateMachine:
+class CommandParserSingletonMeta(type):
+    _instance = None
+    _lock: Lock = Lock()
 
-    MASTER_COMMAND_LENGTH = 4
+    def __call__(cls, *args, **kwargs):
+        with cls._lock:
+            if not cls._instance:
+                instance = super().__call__(*args, **kwargs)
+                cls._instance = instance
+        return cls._instance
+
+
+class CommandParser(metaclass=CommandParserSingletonMeta):
+
     MSG_LENGTH_NUMBYTES = 7  # be carefull, there are magic numbers below for this value
+    MASTER_COMMAND_LENGTH = 4
 
-    def __init__(self, models):
+    def __init__(self):
         self.tmp_buffer = bytearray(self.MSG_LENGTH_NUMBYTES)
         self.tmp_view = memoryview(self.tmp_buffer)
 
         self.data_buf = bytearray(9999999)
         self.data_view = memoryview(self.data_buf)
 
+    def parse_command(self, request):
+        utils.recv_data_into(
+            request,
+            self.tmp_view[: self.MASTER_COMMAND_LENGTH],
+            self.MASTER_COMMAND_LENGTH,
+        )
+        # rstrip is usefull when using nc
+        cmd = self.tmp_buffer[: self.MASTER_COMMAND_LENGTH].decode("ascii")
+
+        return cmd
+
+    def parse_data(self, request):
+        # Read the num bytes of the data
+        utils.recv_data_into(request, self.tmp_view, self.MSG_LENGTH_NUMBYTES)
+        msg_length = int(self.tmp_buffer.decode("ascii"))
+
+        # Read the message
+        utils.recv_data_into(request, self.data_view[:msg_length], msg_length)
+
+        return self.data_buf[:msg_length]
+
+
+def parse_command(request):
+    parser = CommandParser()
+    return parser.parse_command(request)
+
+
+def parse_data(request):
+    parser = CommandParser()
+    return parser.parse_data(request)
+
+
+def send_data(request, cmd, msg):
+    reply = bytes(f"{cmd}{len(msg):07}", "ascii")
+    utils.send_data(request, reply)
+    utils.send_data(request, msg)
+
+
+class MasterStateMachine:
+    def __init__(self, models):
         self.keeps_running = True
         self.models = models
 
@@ -45,10 +98,7 @@ class MasterStateMachine:
 
     def on_list(self, request):
         logging.debug("on_list")
-        model_list = bytes("\n".join([m for m in self.models]), "ascii")
-        reply = bytes(f"list{len(model_list):07}", "ascii")
-        utils.send_data(request, reply)
-        utils.send_data(request, model_list)
+        send_data(request, "list", bytes("\n".join([m for m in self.models]), "ascii"))
         return MasterStates.INIT
 
     def on_quit(self, request):
@@ -59,13 +109,7 @@ class MasterStateMachine:
     def on_select(self, request):
         logging.debug("on_select")
 
-        # Read the message length
-        utils.recv_data_into(request, self.tmp_view, self.MSG_LENGTH_NUMBYTES)
-        msg_length = int(self.tmp_buffer.decode("ascii"))
-
-        # Read the message
-        utils.recv_data_into(request, self.data_view[:msg_length], msg_length)
-        model_name = self.data_buf.decode("ascii")[:msg_length]
+        model_name = parse_data(request).decode("ascii")
         logging.info(f"Loading {model_name}")
 
         # We delegate the FSM to the sub-FSM of the model
@@ -77,27 +121,17 @@ class MasterStateMachine:
     def step(self, request):
         try:
             while self.current_state != MasterStates.FINAL:
-                logging.info(f"In state {self.current_state}")
-                # We listen for the master command
-                # NOTE: we do read 5 bytes (not 4 which is the command length)
-                # because we test the code with nc
-                # which sends the command followed by \n
-                # If we test with telnet, it sends \r\n , so we should
-                # read 2 extra byets
-                utils.recv_data_into(
-                    request,
-                    self.tmp_view[: self.MASTER_COMMAND_LENGTH],
-                    self.MASTER_COMMAND_LENGTH,
-                )
-                # rstrip is usefull when using nc
-                cmd = self.tmp_buffer[: self.MASTER_COMMAND_LENGTH].decode("ascii")
+                logging.debug(f"In state {self.current_state}")
+
+                # Read the command
+                cmd = parse_command(request)
                 allowed_commands = self.transitions[self.current_state]
                 if cmd in allowed_commands:
                     self.current_state = allowed_commands[cmd](request)
                 else:
-                    logging.info(f"Got an unrecognized command {cmd}")
+                    logging.error(f"Got an unrecognized command {cmd}")
         except RuntimeError as e:
-            logging.info(
+            logging.error(
                 f"Connection was closed. Exception was '{e}'. I'm quitting the thread"
             )
             self.current_state = MasterStates.FINAL
@@ -145,6 +179,8 @@ class ModelStateMachine:
 
     def on_ready(self):
         # Listen for the command either data or quit
+        # We are now ready and we indicate the client we are ready
+
         return ModelStates.PREPROCESS
 
     def on_preprocess(self):
