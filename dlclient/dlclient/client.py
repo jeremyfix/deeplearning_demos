@@ -17,9 +17,10 @@ from typing import List
 
 # External imports
 from whiptail import Whiptail
+import cv2
 
 # Local imports
-from dlclient import utils
+from dlclient import utils, video_grabber
 
 ClientStates = Enum(
     "ClientStates", ["INIT", "SELECT", "PREPARE", "FRAME", "QUIT", "FINAL"]
@@ -32,13 +33,14 @@ STR_ENCODING = "ascii"
 # Mapping from the human readable ascii commands to their byte code
 MASTER_COMMAND_LENGTH = 1  # To be adjusted if need, according to below
 COMMANDS_ENCODINGS = {
-    "list": 0b001,
-    "quit": 0b010,
-    "select": 0b011,
-    "ready": 0b100,
-    "input": 0b101,
-    "data": 0b110,
-    "result": 0b111,
+    "list": 0b0001,
+    "quit": 0b0010,
+    "select": 0b0011,
+    "ready": 0b0100,
+    "input": 0b0101,
+    "output": 0b0110,
+    "data": 0b0111,
+    "result": 0b1000,
 }
 
 
@@ -103,6 +105,47 @@ def send_data(request, msg):
     utils.send_data(request, msg)
 
 
+class VideoInputProvider:
+    def __init__(self, jpeg_quality, jpeg_lib, resize_factor, device_id):
+        self.video_grabber = video_grabber.VideoGrabber(
+            jpeg_quality=jpeg_quality,
+            jpeg_lib=jpeg_lib,
+            resize=resize_factor,
+            device_id=device_id,
+        )
+        self.video_grabber.start()
+
+    def release(self):
+        self.video_grabber.stop()
+        self.video_grabber.join()
+
+    def get_data(self):
+        img_buffer, orig_img = self.video_grabber.get_buffer()
+        while img_buffer is None:
+            img_buffer, orig_img = self.video_grabber.get_buffer()
+            # logging.debug("Got none when grabbing ?")
+        return img_buffer
+
+
+class VideoOutputSaver:
+    def __init__(self, jpeg_lib):
+        self.jpeg_handler = utils.make_jpeg_handler(jpeg_lib, 100)
+
+    def display(self, data):
+        # data is a byte array
+        np_img = self.jpeg_handler.decompress(data)
+        np_img = cv2.cvtColor(np_img, cv2.COLOR_BGR2RGB)
+        cv2.imwrite("img.jpg", np_img)
+
+
+class VideoOutputDisplayer:
+    def __init__(self, jpeg_lib):
+        self.jpeg_handler = utils.make_jpeg_handler(jpeg_lib, 100)
+
+    def display(self, data):
+        pass
+
+
 class Client:
     def __init__(self, hostname, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -123,6 +166,17 @@ class Client:
             ClientStates.QUIT: self.quit,
             ClientStates.SELECT: self.select,
         }
+
+        # Parameters if we use a webcam provider
+        self.jpeg_lib = "cv2"
+        self.jpeg_quality = 100
+        self.resize_factor = 0.5
+        self.device_id = 4
+
+        self.input_type = None
+        self.input_provider = None
+        self.output_type = None
+        self.output_displayer = None
 
     def get_list(self):
         send_command(self.sock, "list")
@@ -151,32 +205,62 @@ class Client:
 
     def prepare(self):
         cmd = read_command(self.sock, ["input"])
-        self.input_type = read_data(self.sock)
+        self.input_type = read_data(self.sock).decode(STR_ENCODING)
+        cmd = read_command(self.sock, ["output"])
+        self.output_type = read_data(self.sock).decode(STR_ENCODING)
+
+        logging.info(f"The server expects a {self.input_type}")
+        if self.input_type == "image":
+            self.input_provider = VideoInputProvider(
+                self.jpeg_quality, self.jpeg_lib, self.resize_factor, self.device_id
+            )
+        elif self.input_type == "text":
+            raise NotImplementedError
+        else:
+            raise RuntimeError(
+                f"I do not know what to do to provide input data of type {self.input_type}"
+            )
+
+        if self.output_type == "image":
+            self.output_displayer = VideoOutputSaver(self.jpeg_lib)
+        elif self.input_type == "text":
+            raise NotImplementedError
+        else:
+            raise RuntimeError(
+                f"I do not know what to do to provide input data of type {self.input_type}"
+            )
+
         self.keep_on_sending_frame = True
         return ClientStates.FRAME
 
     def frame(self):
         # Decision: do we send another frame ?
         if self.keep_on_sending_frame:
-            send_command(self.sock, "data")
             # and then send the frame
-            # TODO: for now we send a dummy message
-            send_data(self.sock, bytes("toto", STR_ENCODING))
+            send_command(self.sock, "data")
+            send_data(self.sock, self.input_provider.get_data())
 
             # And wait for the result
-            cmd = read_command(self.sock, ["result"])  # expects: result
-            result = read_data(self.sock).decode(STR_ENCODING)
+            cmd = read_command(self.sock, ["result"])
 
-            # TODO: print out the received result
-            logging.info(f"Got as a result : {result}")
+            result = read_data(self.sock)
+            self.output_displayer.display(result)
 
             # TODO: for now, we stop sending frames after just one frame
-            self.keep_on_sending_frame = False
+            # self.keep_on_sending_frame = False
 
             # And loop back to frame
             return ClientStates.FRAME
         else:
+
+            # Release the input grabber
+            self.input_provider.release()
+            del self.input_provider
+            self.input_provider = None
+
+            # And tell the server to stop processing frames
             send_command(self.sock, "quit")
+
             # And loop back to the list request of the available models
             return ClientStates.INIT
 

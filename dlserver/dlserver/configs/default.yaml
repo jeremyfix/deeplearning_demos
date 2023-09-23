@@ -3,11 +3,11 @@ MobileNetv2.7:
   preprocessing: None
   input_type: "image"
   postprocessing: None
-  output_type: "text"
+  output_type: "image"
 
 Resnet50-v2.7:
   url: https://github.com/onnx/models/raw/main/vision/classification/resnet/model/resnet50-v2-7.onnx
   preprocessing: None
   input_type: "image"
   postprocessing: None
-  output_type: "text"
+  output_type: "image"

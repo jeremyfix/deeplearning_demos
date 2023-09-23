@@ -41,13 +41,14 @@ STR_ENCODING = "ascii"
 # Mapping from the human readable ascii commands to their byte code
 MASTER_COMMAND_LENGTH = 1  # To be adjusted if need, according to below
 COMMANDS_ENCODINGS = {
-    "list": 0b001,
-    "quit": 0b010,
-    "select": 0b011,
-    "ready": 0b100,
-    "input": 0b101,
-    "data": 0b110,
-    "result": 0b111,
+    "list": 0b0001,
+    "quit": 0b0010,
+    "select": 0b0011,
+    "ready": 0b0100,
+    "input": 0b0101,
+    "output": 0b0110,
+    "data": 0b0111,
+    "result": 0b1000,
 }
 
 
@@ -163,7 +164,7 @@ class MasterStateMachine:
                 allowed_commands = self.transitions[self.current_state]
                 cmd = read_command(request, allowed_commands.keys())
                 self.current_state = allowed_commands[cmd](request)
-        except RuntimeError as e:
+        except Exception as e:
             logging.error(
                 f"Connection was closed. Exception was '{e}'. I'm quitting the thread"
             )
@@ -213,6 +214,9 @@ class ModelStateMachine:
         self.fn_postprocessing = postprocessing.load_function(model["postprocessing"])
         self.output_type = model["output_type"]
 
+        # For compressing/decompressing JPEG images
+        self.jpeg_handler = utils.make_jpeg_handler("cv2", 100)
+
     def on_init(self):
         # Prepare the model, i.e. preload all the things
         # we need to do the job
@@ -226,8 +230,12 @@ class ModelStateMachine:
         send_command(self.request, "ready")
 
         # Send the expected input type
+        # as well as the output type
         send_command(self.request, "input")
         send_data(self.request, bytes(self.input_type, STR_ENCODING))
+        send_command(self.request, "output")
+        send_data(self.request, bytes(self.output_type, STR_ENCODING))
+
         return ModelStates.READY
 
     def on_ready(self):
@@ -240,7 +248,23 @@ class ModelStateMachine:
         else:
             # cmd == data
             # Get the data
-            self.input_data = read_data(self.request)
+            received_data = read_data(self.request)
+
+            # Decompress the input data if needed
+            if self.input_type == "image":
+                self.input_data = received_data
+
+                self.input_data = self.jpeg_handler.decompress(received_data)
+                logging.debug(
+                    f"Got a frame of type {type(self.input_data)}, shape {self.input_data.shape}"
+                )
+            elif self.input_type == "text":
+                raise NotImplementedError
+            else:
+                raise RuntimeError(
+                    f"I do not know what to process incoming data of type {self.input_type}"
+                )
+
             # And then transit to preprocess
             return ModelStates.PREPROCESS
 
@@ -265,6 +289,15 @@ class ModelStateMachine:
         result = self.fn_postprocessing(self.model_output)
         # TODO:
         # Send the result back to the client
+        if self.output_type == "image":
+            result = self.jpeg_handler.compress(result)[0]
+        elif self.output_type == "text":
+            raise NotImplementedError
+        else:
+            raise RuntimeError(
+                f"I do not know what to process outgoing data of type {self.output_type}"
+            )
+
         send_command(self.request, "result")
         send_data(self.request, result)
         return ModelStates.READY
