@@ -13,6 +13,7 @@
 import socket
 from enum import Enum
 import logging
+from typing import List
 
 # External imports
 from whiptail import Whiptail
@@ -20,7 +21,9 @@ from whiptail import Whiptail
 # Local imports
 from dlclient import utils
 
-ClientStates = Enum("ClientStates", ["INIT", "SELECT", "QUIT", "FINAL"])
+ClientStates = Enum(
+    "ClientStates", ["INIT", "SELECT", "PREPARE", "FRAME", "QUIT", "FINAL"]
+)
 
 # Number of bytes for encoding the command and the message length
 MSG_LENGTH_NUMBYTES = 6
@@ -33,6 +36,9 @@ COMMANDS_ENCODINGS = {
     "quit": 0b010,
     "select": 0b011,
     "ready": 0b100,
+    "input": 0b101,
+    "data": 0b110,
+    "result": 0b111,
 }
 
 
@@ -69,10 +75,14 @@ class CommandParser:
         return self.data_buf[:msg_length]
 
 
-def read_command(request):
+def read_command(request, expected: List[str] = None):
     parser = CommandParser()
     cmd_int = int.from_bytes(parser.read_command(request), ENDIANESS)
     cmd = COMMANDS_ENCODINGS[cmd_int]
+    if expected is not None and cmd not in expected:
+        raise RuntimeError(
+            f"Error in the protocol, expected the command in {expected}, but got {cmd}"
+        )
     return cmd
 
 
@@ -108,15 +118,15 @@ class Client:
 
         self.callbacks = {
             ClientStates.INIT: self.get_list,
+            ClientStates.PREPARE: self.prepare,
+            ClientStates.FRAME: self.frame,
             ClientStates.QUIT: self.quit,
             ClientStates.SELECT: self.select,
         }
 
     def get_list(self):
         send_command(self.sock, "list")
-        cmd = read_command(self.sock)
-        if cmd != "list":
-            raise RuntimeError(f"Unexpected server reply, got {cmd}, expected 'list'")
+        cmd = read_command(self.sock, ["list"])
         model_list = read_data(self.sock).decode(STR_ENCODING).split("\n")
 
         self.selected_model, cancel = self.whiptail.menu(
@@ -134,11 +144,41 @@ class Client:
         send_command(self.sock, "select")
         send_data(self.sock, msg)
 
-        # TODO: wait until the server is ready to get and process
-        # incoming data
-        cmd = read_command(self.sock)
+        # wait until the server is ready to get
+        cmd = read_command(self.sock, ["ready"])
 
-        return ClientStates.INIT
+        return ClientStates.PREPARE
+
+    def prepare(self):
+        cmd = read_command(self.sock, ["input"])
+        self.input_type = read_data(self.sock)
+        self.keep_on_sending_frame = True
+        return ClientStates.FRAME
+
+    def frame(self):
+        # Decision: do we send another frame ?
+        if self.keep_on_sending_frame:
+            send_command(self.sock, "data")
+            # and then send the frame
+            # TODO: for now we send a dummy message
+            send_data(self.sock, bytes("toto", STR_ENCODING))
+
+            # And wait for the result
+            cmd = read_command(self.sock, ["result"])  # expects: result
+            result = read_data(self.sock).decode(STR_ENCODING)
+
+            # TODO: print out the received result
+            logging.info(f"Got as a result : {result}")
+
+            # TODO: for now, we stop sending frames after just one frame
+            self.keep_on_sending_frame = False
+
+            # And loop back to frame
+            return ClientStates.FRAME
+        else:
+            send_command(self.sock, "quit")
+            # And loop back to the list request of the available models
+            return ClientStates.INIT
 
     def quit(self):
         send_command(self.sock, "quit")

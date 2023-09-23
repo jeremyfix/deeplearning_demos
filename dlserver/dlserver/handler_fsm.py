@@ -13,9 +13,10 @@ import logging
 from enum import Enum
 from threading import Lock
 import socket
+from typing import List
 
 # Local imports
-from dlserver import utils
+from dlserver import utils, preprocessing, postprocessing
 
 
 MasterStates = Enum("MasterStates", ["INIT", "FINAL"])
@@ -44,6 +45,9 @@ COMMANDS_ENCODINGS = {
     "quit": 0b010,
     "select": 0b011,
     "ready": 0b100,
+    "input": 0b101,
+    "data": 0b110,
+    "result": 0b111,
 }
 
 
@@ -80,10 +84,14 @@ class CommandParser(metaclass=CommandParserSingletonMeta):
         return self.data_buf[:msg_length]
 
 
-def read_command(request):
+def read_command(request, expected: List[str] = None):
     parser = CommandParser()
     cmd_int = int.from_bytes(parser.read_command(request), ENDIANESS)
     cmd = COMMANDS_ENCODINGS[cmd_int]
+    if expected is not None and cmd not in expected:
+        raise RuntimeError(
+            f"Error in the protocol, expected the command in {expected}, but got {cmd}"
+        )
     return cmd
 
 
@@ -152,13 +160,9 @@ class MasterStateMachine:
                 logging.debug(f"In state {self.current_state}")
 
                 # Read the command
-                cmd = read_command(request)
-                logging.debug(f"got {cmd}")
                 allowed_commands = self.transitions[self.current_state]
-                if cmd in allowed_commands:
-                    self.current_state = allowed_commands[cmd](request)
-                else:
-                    logging.error(f"Got an unrecognized command {cmd}")
+                cmd = read_command(request, allowed_commands.keys())
+                self.current_state = allowed_commands[cmd](request)
         except RuntimeError as e:
             logging.error(
                 f"Connection was closed. Exception was '{e}'. I'm quitting the thread"
@@ -199,6 +203,16 @@ class ModelStateMachine:
             ModelStates.RELEASE: self.on_release,
         }
 
+        self.input_data = None
+        self.preprocessed = None
+        self.model_output = None
+        self.model = lambda x: x
+
+        self.input_type = model["input_type"]
+        self.fn_preprocessing = preprocessing.load_function(model["preprocessing"])
+        self.fn_postprocessing = postprocessing.load_function(model["postprocessing"])
+        self.output_type = model["output_type"]
+
     def on_init(self):
         # Prepare the model, i.e. preload all the things
         # we need to do the job
@@ -207,28 +221,53 @@ class ModelStateMachine:
 
         # If success, loop to READY
         # TODO : if fail, loop to release
+
+        # We are now ready and we indicate the client we are ready
+        send_command(self.request, "ready")
+
+        # Send the expected input type
+        send_command(self.request, "input")
+        send_data(self.request, bytes(self.input_type, STR_ENCODING))
         return ModelStates.READY
 
     def on_ready(self):
         # Listen for the command either data or quit
-        # We are now ready and we indicate the client we are ready
-        send_command(self.request, "ready")
-        return ModelStates.PREPROCESS
+
+        # Wait for the next command
+        cmd = read_command(self.request, ["quit", "data"])
+        if cmd == "quit":
+            return ModelStates.RELEASE
+        else:
+            # cmd == data
+            # Get the data
+            self.input_data = read_data(self.request)
+            # And then transit to preprocess
+            return ModelStates.PREPROCESS
 
     def on_preprocess(self):
         # We got some data, we need to preprocess them
+        logging.debug("preprocessing")
+        self.preprocessed = self.fn_preprocessing(self.input_data)
         return ModelStates.PROCESS
 
     def on_process(self):
         # We got a preprocesse data, we need to perform inference
         # with the neural net
+        logging.debug("processing")
+        self.model_output = self.model(self.preprocessed)
         return ModelStates.POSTPROCESS
 
     def on_postprocess(self):
         # We got the output of the model,
         # we need to postprocess the result, send it to the client
         # and loop back to the READY state
-        return ModelStates.FINAL
+        logging.debug("postprocessing")
+        result = self.fn_postprocessing(self.model_output)
+        # TODO:
+        # Send the result back to the client
+        send_command(self.request, "result")
+        send_data(self.request, result)
+        return ModelStates.READY
 
     def on_release(self):
         # We are asked to stop using this model
