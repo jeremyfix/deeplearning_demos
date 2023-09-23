@@ -12,6 +12,7 @@
 import logging
 from enum import Enum
 from threading import Lock
+import socket
 
 # Local imports
 from dlserver import utils
@@ -33,15 +34,14 @@ class CommandParserSingletonMeta(type):
 
 
 # Number of bytes for encoding the command and the message length
-# be carefull, there are magic numbers below for these values
-# in send_command and send_data
-MSG_LENGTH_NUMBYTES = 7
+MSG_LENGTH_NUMBYTES = 6
 MASTER_COMMAND_LENGTH = 6
+ENDIANESS = "big"
 
 
 class CommandParser(metaclass=CommandParserSingletonMeta):
     def __init__(self):
-        self.tmp_buffer = bytearray(MSG_LENGTH_NUMBYTES)
+        self.tmp_buffer = bytearray(max(MASTER_COMMAND_LENGTH, MSG_LENGTH_NUMBYTES))
         self.tmp_view = memoryview(self.tmp_buffer)
 
         self.data_buf = bytearray(9999999)
@@ -62,7 +62,8 @@ class CommandParser(metaclass=CommandParserSingletonMeta):
     def read_data(self, request):
         # Read the num bytes of the data
         utils.recv_data_into(request, self.tmp_view, MSG_LENGTH_NUMBYTES)
-        msg_length = int(self.tmp_buffer.decode("ascii"))
+        # msg_length = int(self.tmp_buffer.decode("ascii"))
+        msg_length = int.from_bytes(self.tmp_buffer, ENDIANESS)
 
         # Read the message
         utils.recv_data_into(request, self.data_view[:msg_length], msg_length)
@@ -83,14 +84,22 @@ def read_data(request):
 
 
 def send_command(request, cmd):
-    reply = bytes(f"{cmd:6s}", "ascii")
+    reply = bytes(
+        "{cmd:{width}s}".format(cmd=cmd, width=MASTER_COMMAND_LENGTH), "ascii"
+    )
     utils.send_data(request, reply)
 
 
-def send_data(request, msg):
-    reply = bytes(f"{len(msg):07}", "ascii")
-    utils.send_data(request, reply)
+def send_data(request: socket.socket, msg):
+    msg_len = len(msg)
+    msg_len = msg_len.to_bytes(MSG_LENGTH_NUMBYTES, ENDIANESS)
+    utils.send_data(request, msg_len)
     utils.send_data(request, msg)
+
+
+def get_host_id(sock: socket.socket):
+    hostname, port = sock.getsockname()
+    return f"{hostname}:{port}"
 
 
 class MasterStateMachine:
@@ -122,7 +131,7 @@ class MasterStateMachine:
         logging.debug("on_select")
 
         model_name = read_data(request).decode("ascii")
-        logging.debug(f"Loading {model_name}")
+        logging.debug(f"Loading {model_name} for {get_host_id(request)}")
 
         # We delegate the FSM to the sub-FSM of the model
         model_fsm = ModelStateMachine(request, self.models[model_name])

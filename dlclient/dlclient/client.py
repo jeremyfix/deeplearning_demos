@@ -23,15 +23,14 @@ from dlclient import utils
 ClientStates = Enum("ClientStates", ["INIT", "SELECT", "QUIT", "FINAL"])
 
 # Number of bytes for encoding the command and the message length
-# be carefull, there are magic numbers below for these values
-# in send_command and send_data
-MSG_LENGTH_NUMBYTES = 7
+MSG_LENGTH_NUMBYTES = 6
 MASTER_COMMAND_LENGTH = 6
+ENDIANESS = "big"
 
 
 class CommandParser:
     def __init__(self):
-        self.tmp_buffer = bytearray(MSG_LENGTH_NUMBYTES)
+        self.tmp_buffer = bytearray(max(MASTER_COMMAND_LENGTH, MSG_LENGTH_NUMBYTES))
         self.tmp_view = memoryview(self.tmp_buffer)
 
         self.data_buf = bytearray(9999999)
@@ -52,8 +51,8 @@ class CommandParser:
     def read_data(self, request):
         # Read the num bytes of the data
         utils.recv_data_into(request, self.tmp_view, MSG_LENGTH_NUMBYTES)
-        msg_length = int(self.tmp_buffer.decode("ascii"))
-        print(f"Mesg length {msg_length}")
+        msg_length = int.from_bytes(self.tmp_buffer, ENDIANESS)
+        # msg_length = int(self.tmp_buffer.decode("ascii"))
 
         # Read the message
         utils.recv_data_into(request, self.data_view[:msg_length], msg_length)
@@ -74,13 +73,16 @@ def read_data(request):
 
 
 def send_command(request, cmd):
-    reply = bytes(f"{cmd:6s}", "ascii")
+    reply = bytes(
+        "{cmd:{width}s}".format(cmd=cmd, width=MASTER_COMMAND_LENGTH), "ascii"
+    )
     utils.send_data(request, reply)
 
 
 def send_data(request, msg):
-    reply = bytes(f"{len(msg):07}", "ascii")
-    utils.send_data(request, reply)
+    msg_len = len(msg)
+    msg_len = msg_len.to_bytes(MSG_LENGTH_NUMBYTES, ENDIANESS)
+    utils.send_data(request, msg_len)
     utils.send_data(request, msg)
 
 
@@ -129,7 +131,6 @@ class Client:
         # TODO: wait until the server is ready to get and process
         # incoming data
         cmd = read_command(self.sock)
-        print(f"Received : {cmd}")
 
         return ClientStates.INIT
 
