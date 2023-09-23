@@ -24,8 +24,16 @@ ClientStates = Enum("ClientStates", ["INIT", "SELECT", "QUIT", "FINAL"])
 
 # Number of bytes for encoding the command and the message length
 MSG_LENGTH_NUMBYTES = 6
-MASTER_COMMAND_LENGTH = 6
 ENDIANESS = "big"
+STR_ENCODING = "ascii"
+# Mapping from the human readable ascii commands to their byte code
+MASTER_COMMAND_LENGTH = 1  # To be adjusted if need, according to below
+COMMANDS_ENCODINGS = {
+    "list": 0b001,
+    "quit": 0b010,
+    "select": 0b011,
+    "ready": 0b100,
+}
 
 
 class CommandParser:
@@ -36,15 +44,17 @@ class CommandParser:
         self.data_buf = bytearray(9999999)
         self.data_view = memoryview(self.data_buf)
 
+        command_coding = list(COMMANDS_ENCODINGS.items())
+        for c, v in command_coding:
+            COMMANDS_ENCODINGS[v] = c
+
     def read_command(self, request):
         utils.recv_data_into(
             request,
             self.tmp_view[:MASTER_COMMAND_LENGTH],
             MASTER_COMMAND_LENGTH,
         )
-
-        # rstrip is usefull when using nc
-        cmd = self.tmp_buffer[:MASTER_COMMAND_LENGTH].decode("ascii")
+        cmd = self.tmp_buffer[:MASTER_COMMAND_LENGTH]
 
         return cmd
 
@@ -52,7 +62,6 @@ class CommandParser:
         # Read the num bytes of the data
         utils.recv_data_into(request, self.tmp_view, MSG_LENGTH_NUMBYTES)
         msg_length = int.from_bytes(self.tmp_buffer, ENDIANESS)
-        # msg_length = int(self.tmp_buffer.decode("ascii"))
 
         # Read the message
         utils.recv_data_into(request, self.data_view[:msg_length], msg_length)
@@ -62,9 +71,9 @@ class CommandParser:
 
 def read_command(request):
     parser = CommandParser()
-    cmd = parser.read_command(request)
-    # Possibly remove the padding value
-    return cmd.rstrip()
+    cmd_int = int.from_bytes(parser.read_command(request), ENDIANESS)
+    cmd = COMMANDS_ENCODINGS[cmd_int]
+    return cmd
 
 
 def read_data(request):
@@ -73,10 +82,8 @@ def read_data(request):
 
 
 def send_command(request, cmd):
-    reply = bytes(
-        "{cmd:{width}s}".format(cmd=cmd, width=MASTER_COMMAND_LENGTH), "ascii"
-    )
-    utils.send_data(request, reply)
+    cmd = COMMANDS_ENCODINGS[cmd].to_bytes(MASTER_COMMAND_LENGTH, ENDIANESS)
+    utils.send_data(request, cmd)
 
 
 def send_data(request, msg):
@@ -110,8 +117,7 @@ class Client:
         cmd = read_command(self.sock)
         if cmd != "list":
             raise RuntimeError(f"Unexpected server reply, got {cmd}, expected 'list'")
-        model_list = read_data(self.sock).decode("ascii").split("\n")
-        print(model_list)
+        model_list = read_data(self.sock).decode(STR_ENCODING).split("\n")
 
         self.selected_model, cancel = self.whiptail.menu(
             "Select the model you want to run. Cancel to quit", model_list
@@ -123,9 +129,9 @@ class Client:
 
     def select(self):
         # Send to the server the selected model
-        msg = bytes(self.selected_model, "ascii")
+        msg = bytes(self.selected_model, STR_ENCODING)
 
-        send_command(self.sock, "slct")
+        send_command(self.sock, "select")
         send_data(self.sock, msg)
 
         # TODO: wait until the server is ready to get and process
@@ -135,8 +141,6 @@ class Client:
         return ClientStates.INIT
 
     def quit(self):
-        # request = bytes("quit", "ascii")
-        # utils.send_data(self.sock, request)
         send_command(self.sock, "quit")
         self.keep_running = False
         return ClientStates.FINAL
