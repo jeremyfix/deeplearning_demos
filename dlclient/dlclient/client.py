@@ -134,16 +134,33 @@ class VideoOutputSaver:
     def display(self, data):
         # data is a byte array
         np_img = self.jpeg_handler.decompress(data)
-        np_img = cv2.cvtColor(np_img, cv2.COLOR_BGR2RGB)
+        np_img = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
         cv2.imwrite("img.jpg", np_img)
+        return False
 
 
 class VideoOutputDisplayer:
     def __init__(self, jpeg_lib):
         self.jpeg_handler = utils.make_jpeg_handler(jpeg_lib, 100)
+        self.window_name = "Result"
+        self.window = cv2.namedWindow("Result")
+        # cv2.setWindowProperty(self.window_name, cv2.WND_PROP_TOPMOST, 1)
+        cv2.setWindowProperty(
+            self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN
+        )
+        cv2.setWindowProperty(
+            self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL
+        )
+
+    def __del__(self):
+        cv2.destroyWindow(self.window_name)
 
     def display(self, data):
-        pass
+        np_img = self.jpeg_handler.decompress(data)
+        np_img = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
+        cv2.imshow(self.window_name, np_img)
+        keep_running = not (cv2.waitKey(1) & 0xFF == ord("q"))
+        return keep_running
 
 
 class Client:
@@ -222,7 +239,7 @@ class Client:
             )
 
         if self.output_type == "image":
-            self.output_displayer = VideoOutputSaver(self.jpeg_lib)
+            self.output_displayer = VideoOutputDisplayer(self.jpeg_lib)
         elif self.input_type == "text":
             raise NotImplementedError
         else:
@@ -244,10 +261,7 @@ class Client:
             cmd = read_command(self.sock, ["result"])
 
             result = read_data(self.sock)
-            self.output_displayer.display(result)
-
-            # TODO: for now, we stop sending frames after just one frame
-            # self.keep_on_sending_frame = False
+            self.keep_on_sending_frame = self.output_displayer.display(result)
 
             # And loop back to frame
             return ClientStates.FRAME
@@ -257,6 +271,8 @@ class Client:
             self.input_provider.release()
             del self.input_provider
             self.input_provider = None
+            del self.output_displayer
+            self.output_displayer = None
 
             # And tell the server to stop processing frames
             send_command(self.sock, "quit")

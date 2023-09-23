@@ -3,7 +3,7 @@ name = "dlclient"
 version = "0.0.1"
 
 dependencies = [
-    "opencv-python-headless",
+    "opencv-python",
     "numpy",
     "whiptail-dialogs"
 ]
