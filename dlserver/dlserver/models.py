@@ -8,6 +8,9 @@
 
 # You should have received a copy of the GNU General Public License along with dlserver. If not, see <https://www.gnu.org/licenses/>.
 
+# Standard imports
+import urllib.request as request
+
 
 class ImageToLabel:
     def __init__(self):
@@ -18,11 +21,19 @@ class ImageToLabel:
 
 
 class ONNX:
-    def __init__(self, url):
-        pass
+    def __init__(self, url, labels_from_url=None, labels=None):
+        if labels_from_url is not None:
+            raw_labels = request.urlopen(labels_from_url).readlines()
+            self.labels = [
+                " ".join(l.decode("ascii").rstrip().split(" ")[1:]) for l in raw_labels
+            ]
+        else:
+            self.labels = None
 
     def __call__(self, inp_data, frame_assets: dict):
-        pass
+        # TODO: get cls_id as the argmax of the output of the model
+        cls_id = 0
+        frame_assets["label"] = self.labels[cls_id]
 
 
 def load_model(cls: str, params: dict):
