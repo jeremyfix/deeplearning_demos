@@ -1,13 +1,29 @@
-MobileNetv2.7:
-  url: https://github.com/onnx/models/raw/main/vision/classification/mobilenet/model/mobilenetv2-7.onnx
-  preprocessing: None
+TestImageToLabel:
+  model:
+    cls: "ImageToLabel"
+    params: 
+  preprocessing: "imagenet_preprocess"
   input_type: "image"
-  postprocessing: None
+  postprocessing: "label_on_image"
+  output_type: "image"
+
+MobileNetv2.7:
+  model: 
+    cls: "onnx"
+    params: 
+      url: https://github.com/onnx/models/raw/main/vision/classification/mobilenet/model/mobilenetv2-7.onnx
+  preprocessing: "imagenet_preprocess"
+  input_type: "image"
+  postprocessing: "label_on_image"
   output_type: "image"
 
 Resnet50-v2.7:
-  url: https://github.com/onnx/models/raw/main/vision/classification/resnet/model/resnet50-v2-7.onnx
-  preprocessing: None
+  model: 
+    cls: "onnx"
+    params:
+      url: https://github.com/onnx/models/raw/main/vision/classification/resnet/model/resnet50-v2-7.onnx
+  preprocessing: "imagenet_preprocess"
   input_type: "image"
-  postprocessing: None
+  postprocessing: "label_on_image"
   output_type: "image"
+

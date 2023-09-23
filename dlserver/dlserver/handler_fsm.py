@@ -16,7 +16,7 @@ import socket
 from typing import List
 
 # Local imports
-from dlserver import utils, preprocessing, postprocessing
+from dlserver import utils, preprocessing, postprocessing, models
 
 
 MasterStates = Enum("MasterStates", ["INIT", "FINAL"])
@@ -156,20 +156,20 @@ class MasterStateMachine:
         return MasterStates.INIT
 
     def step(self, request):
-        try:
-            while self.current_state != MasterStates.FINAL:
-                logging.debug(f"In state {self.current_state}")
+        # try:
+        while self.current_state != MasterStates.FINAL:
+            logging.debug(f"In state {self.current_state}")
 
-                # Read the command
-                allowed_commands = self.transitions[self.current_state]
-                cmd = read_command(request, allowed_commands.keys())
-                self.current_state = allowed_commands[cmd](request)
-        except Exception as e:
-            logging.error(
-                f"Connection was closed. Exception was '{e}'. I'm quitting the thread"
-            )
-            self.current_state = MasterStates.FINAL
-            self.keeps_running = False
+            # Read the command
+            allowed_commands = self.transitions[self.current_state]
+            cmd = read_command(request, allowed_commands.keys())
+            self.current_state = allowed_commands[cmd](request)
+        # except Exception as e:
+        #     logging.error(
+        #         f"Connection was closed. Exception was '{e}'. I'm quitting the thread"
+        #     )
+        #     self.current_state = MasterStates.FINAL
+        #     self.keeps_running = False
 
 
 ModelStates = Enum(
@@ -207,8 +207,12 @@ class ModelStateMachine:
         self.input_data = None
         self.preprocessed = None
         self.model_output = None
-        self.model = lambda x: x
 
+        model_cls = model["model"]["cls"]
+        model_params = model["model"]["params"]
+        self.model = models.load_model(model_cls, model_params)
+
+        self.frame_assets = {}
         self.input_type = model["input_type"]
         self.fn_preprocessing = preprocessing.load_function(model["preprocessing"])
         self.fn_postprocessing = postprocessing.load_function(model["postprocessing"])
@@ -249,6 +253,7 @@ class ModelStateMachine:
             # cmd == data
             # Get the data
             received_data = read_data(self.request)
+            self.frame_assets = {}
 
             # Decompress the input data if needed
             if self.input_type == "image":
@@ -258,6 +263,7 @@ class ModelStateMachine:
                 logging.debug(
                     f"Got a frame of type {type(self.input_data)}, shape {self.input_data.shape}"
                 )
+                self.frame_assets["src_img"] = self.input_data.copy()
             elif self.input_type == "text":
                 raise NotImplementedError
             else:
@@ -271,14 +277,15 @@ class ModelStateMachine:
     def on_preprocess(self):
         # We got some data, we need to preprocess them
         logging.debug("preprocessing")
-        self.preprocessed = self.fn_preprocessing(self.input_data)
+        self.preprocessed = self.fn_preprocessing(self.input_data, self.frame_assets)
         return ModelStates.PROCESS
 
     def on_process(self):
         # We got a preprocesse data, we need to perform inference
         # with the neural net
         logging.debug("processing")
-        self.model_output = self.model(self.preprocessed)
+        self.model_output = self.model(self.preprocessed, self.frame_assets)
+        self.frame_assets["model_output"] = self.model_output
         return ModelStates.POSTPROCESS
 
     def on_postprocess(self):
@@ -286,7 +293,7 @@ class ModelStateMachine:
         # we need to postprocess the result, send it to the client
         # and loop back to the READY state
         logging.debug("postprocessing")
-        result = self.fn_postprocessing(self.model_output)
+        result = self.fn_postprocessing(self.frame_assets)
         # TODO:
         # Send the result back to the client
         if self.output_type == "image":
