@@ -35,8 +35,8 @@ def imagenet_preprocess(img: np.array, frame_assets: dict):
     img = np.pad(
         img,
         pad_width=(
-            (pad_h // 2, pad_h - pad_h // 2),
             (pad_w // 2, pad_w - pad_w // 2),
+            (pad_h // 2, pad_h - pad_h // 2),
             (0, 0),
         ),
     )
@@ -49,11 +49,11 @@ def imagenet_preprocess(img: np.array, frame_assets: dict):
         # which is Licensed Apache 2
         def crop_center(image, crop_w, crop_h):
             h, w, c = image.shape
-            start_x = w // 2 - crop_w // 2
             start_y = h // 2 - crop_h // 2
+            start_x = w // 2 - crop_w // 2
             return image[start_y : start_y + crop_h, start_x : start_x + crop_w, :]
 
-        img = crop_center(img, 224, 244)
+        img = crop_center(img, 224, 224)
     else:
         # Otherwise we pad again
         # Pad, if necessary, the image to be (224, 224)
@@ -71,6 +71,7 @@ def imagenet_preprocess(img: np.array, frame_assets: dict):
     # Finally convert the image from (H, W, C) to (1, C, H, W)
     img = img.transpose(2, 0, 1)
     img = img[np.newaxis, ...]
+    img = img.astype("float32")
 
     return img
 

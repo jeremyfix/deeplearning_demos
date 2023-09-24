@@ -22,9 +22,14 @@ from dlserver.config import load_config
 
 def main():
 
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
-
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--verbose",
+        default=logging.INFO,
+        help="Verbosity level",
+        type=int,
+        choices=[logging.INFO, logging.DEBUG],
+    )
     parser.add_argument(
         "--port",
         default=6008,
@@ -43,6 +48,7 @@ def main():
     )
     args = parser.parse_args()
 
+    logging.basicConfig(stream=sys.stdout, level=args.verbose, format="%(message)s")
     config = load_config(args.config)
     if config is None:
         return

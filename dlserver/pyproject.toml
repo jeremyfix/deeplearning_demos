@@ -5,7 +5,8 @@ version = "0.0.1"
 dependencies = [
     "PyYAML>=6.0",
     "opencv-python-headless",
-    "numpy"
+    "numpy",
+    "onnxruntime"
 ]
 
 [tool.setuptools]

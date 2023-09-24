@@ -150,7 +150,7 @@ class MasterStateMachine:
         logging.debug(f"Loading {model_name} for {get_host_id(request)}")
 
         # We delegate the FSM to the sub-FSM of the model
-        model_fsm = ModelStateMachine(request, self.models[model_name])
+        model_fsm = ModelStateMachine(request, model_name, self.models[model_name])
         model_fsm.step()
 
         return MasterStates.INIT
@@ -179,16 +179,18 @@ ModelStates = Enum(
 
 
 class ModelStateMachine:
-    def __init__(self, request, model: dict):
+    def __init__(self, request, model_name: str, model: dict):
         """
         request: socket.socket
             the socket to discuss with the client
 
+        model_name: str
         model: dict
-            name:
-            url:
-            input_type
+            model:
+                cls:
+                params:
             preprocessing:
+            input_type
             postprocessing:
             output_type:
 
@@ -210,7 +212,7 @@ class ModelStateMachine:
 
         model_cls = model["model"]["cls"]
         model_params = model["model"]["params"]
-        self.model = models.load_model(model_cls, model_params)
+        self.model = models.load_model(model_cls, model_name, model_params)
 
         self.frame_assets = {}
         self.input_type = model["input_type"]

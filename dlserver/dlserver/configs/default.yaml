@@ -9,7 +9,7 @@ TestImageToLabel:
 
 MobileNetv2.7:
   model: 
-    cls: "ONNX"
+    cls: "ClassifierONNX"
     params: 
       url: https://github.com/onnx/models/raw/main/vision/classification/mobilenet/model/mobilenetv2-7.onnx
       labels_from_url: https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt
@@ -20,7 +20,7 @@ MobileNetv2.7:
 
 Resnet50-v2.7:
   model: 
-    cls: "ONNX"
+    cls: "ClassifierONNX"
     params:
       url: https://github.com/onnx/models/raw/main/vision/classification/resnet/model/resnet50-v2-7.onnx
       labels_from_url: https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt

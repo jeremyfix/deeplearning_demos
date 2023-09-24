@@ -10,18 +10,24 @@
 
 # Standard imports
 import urllib.request as request
+import tempfile
+import logging
+import pathlib
+
+# External imports
+import onnxruntime as ort
 
 
 class ImageToLabel:
-    def __init__(self):
+    def __init__(self, modelname: str):
         pass
 
     def __call__(self, inp_data, frame_assets: dict):
         frame_assets["label"] = "Example text"
 
 
-class ONNX:
-    def __init__(self, url, labels_from_url=None, labels=None):
+class ClassifierONNX:
+    def __init__(self, modelname: str, url: str, labels_from_url=None, labels=None):
         if labels_from_url is not None:
             raw_labels = request.urlopen(labels_from_url).readlines()
             self.labels = [
@@ -30,14 +36,24 @@ class ONNX:
         else:
             self.labels = None
 
+        # Download the onnx model
+        filepath = pathlib.Path(tempfile.gettempdir()) / f"{modelname}.onnx"
+        if not filepath.exists():
+            logging.debug(f"Downloading {url} into {filepath}")
+            request.urlretrieve(url, filename=filepath)
+        logging.debug(f"Available ORT providers : {ort.get_available_providers()}")
+        self.session = ort.InferenceSession(
+            str(filepath), providers=ort.get_available_providers()
+        )
+
     def __call__(self, inp_data, frame_assets: dict):
-        # TODO: get cls_id as the argmax of the output of the model
-        cls_id = 0
+        outputs = self.session.run(None, {"data": inp_data})
+        cls_id = outputs[0].argmax()
         frame_assets["label"] = self.labels[cls_id]
 
 
-def load_model(cls: str, params: dict):
+def load_model(cls: str, modelname: str, params: dict):
     if params:
-        return eval(f"{cls}(**params)")
+        return eval(f"{cls}(modelname, **params)")
     else:
-        return eval(f"{cls}()")
+        return eval(f"{cls}(modelname)")
