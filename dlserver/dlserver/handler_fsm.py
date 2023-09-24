@@ -156,20 +156,20 @@ class MasterStateMachine:
         return MasterStates.INIT
 
     def step(self, request):
-        # try:
-        while self.current_state != MasterStates.FINAL:
-            logging.debug(f"In state {self.current_state}")
+        try:
+            while self.current_state != MasterStates.FINAL:
+                logging.debug(f"In state {self.current_state}")
 
-            # Read the command
-            allowed_commands = self.transitions[self.current_state]
-            cmd = read_command(request, allowed_commands.keys())
-            self.current_state = allowed_commands[cmd](request)
-        # except Exception as e:
-        #     logging.error(
-        #         f"Connection was closed. Exception was '{e}'. I'm quitting the thread"
-        #     )
-        #     self.current_state = MasterStates.FINAL
-        #     self.keeps_running = False
+                # Read the command
+                allowed_commands = self.transitions[self.current_state]
+                cmd = read_command(request, allowed_commands.keys())
+                self.current_state = allowed_commands[cmd](request)
+        except Exception as e:
+            logging.error(
+                f"Connection was closed. Exception was '{e}'. I'm quitting the thread"
+            )
+            self.current_state = MasterStates.FINAL
+            self.keeps_running = False
 
 
 ModelStates = Enum(
@@ -231,6 +231,7 @@ class ModelStateMachine:
         # Preprocessing, postprocessing functions
         # and the model (e.g. onnx download and load)
 
+        logging.debug("init")
         # If success, loop to READY
         # TODO : if fail, loop to release
 
@@ -249,6 +250,7 @@ class ModelStateMachine:
     def on_ready(self):
         # Listen for the command either data or quit
 
+        logging.debug("ready")
         # Wait for the next command
         cmd = read_command(self.request, ["quit", "data"])
         if cmd == "quit":

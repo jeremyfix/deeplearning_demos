@@ -12,7 +12,6 @@
 # Standard imports
 import socket
 from enum import Enum
-import logging
 from typing import List
 
 # External imports
@@ -123,7 +122,6 @@ class VideoInputProvider:
         img_buffer, orig_img = self.video_grabber.get_buffer()
         while img_buffer is None:
             img_buffer, orig_img = self.video_grabber.get_buffer()
-            # logging.debug("Got none when grabbing ?")
         return img_buffer
 
 
@@ -197,7 +195,7 @@ class Client:
 
     def get_list(self):
         send_command(self.sock, "list")
-        cmd = read_command(self.sock, ["list"])
+        _ = read_command(self.sock, ["list"])
         model_list = read_data(self.sock).decode(STR_ENCODING).split("\n")
 
         self.selected_model, cancel = self.whiptail.menu(
@@ -216,17 +214,16 @@ class Client:
         send_data(self.sock, msg)
 
         # wait until the server is ready to get
-        cmd = read_command(self.sock, ["ready"])
+        _ = read_command(self.sock, ["ready"])
 
         return ClientStates.PREPARE
 
     def prepare(self):
-        cmd = read_command(self.sock, ["input"])
+        _ = read_command(self.sock, ["input"])
         self.input_type = read_data(self.sock).decode(STR_ENCODING)
-        cmd = read_command(self.sock, ["output"])
+        _ = read_command(self.sock, ["output"])
         self.output_type = read_data(self.sock).decode(STR_ENCODING)
 
-        logging.info(f"The server expects a {self.input_type}")
         if self.input_type == "image":
             self.input_provider = VideoInputProvider(
                 self.jpeg_quality, self.jpeg_lib, self.resize_factor, self.device_id
@@ -258,7 +255,7 @@ class Client:
             send_data(self.sock, self.input_provider.get_data())
 
             # And wait for the result
-            cmd = read_command(self.sock, ["result"])
+            _ = read_command(self.sock, ["result"])
 
             result = read_data(self.sock)
             self.keep_on_sending_frame = self.output_displayer.display(result)
