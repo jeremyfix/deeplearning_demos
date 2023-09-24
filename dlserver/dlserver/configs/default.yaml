@@ -36,3 +36,16 @@ Classification-Resnet50-v2.7:
       labels_from_url: https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt
   output_type: "image"
 
+#TODO: the model advises to use image of size 520 x 520 minimum
+Segmentation-VOC-FCN-Resnet50-12-int8:
+  model: 
+    cls: "ONNX"
+    params:
+      url: https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/fcn/model/fcn-resnet50-12-int8.onnx
+  preprocessing: "imagenet_preprocess"
+  input_type: "image"
+  postprocessing: 
+    cls: "segmentation_overlay"
+    params: 
+      labels_from_url: https://github.com/onnx/models/blob/main/vision/object_detection_segmentation/fcn/dependencies/voc_classes.txt
+  output_type: "image"
