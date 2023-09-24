@@ -26,15 +26,8 @@ class ImageToLabel:
         frame_assets["label"] = "Example text"
 
 
-class ClassifierONNX:
-    def __init__(self, modelname: str, url: str, labels_from_url=None, labels=None):
-        if labels_from_url is not None:
-            raw_labels = request.urlopen(labels_from_url).readlines()
-            self.labels = [
-                " ".join(l.decode("ascii").rstrip().split(" ")[1:]) for l in raw_labels
-            ]
-        else:
-            self.labels = None
+class ONNX:
+    def __init__(self, modelname: str, url: str):
 
         # Download the onnx model
         filepath = pathlib.Path(tempfile.gettempdir()) / f"{modelname}.onnx"
@@ -48,8 +41,7 @@ class ClassifierONNX:
 
     def __call__(self, inp_data, frame_assets: dict):
         outputs = self.session.run(None, {"data": inp_data})
-        cls_id = outputs[0].argmax()
-        frame_assets["label"] = self.labels[cls_id]
+        frame_assets["output"] = outputs[0]
 
 
 def load_model(cls: str, modelname: str, params: dict):

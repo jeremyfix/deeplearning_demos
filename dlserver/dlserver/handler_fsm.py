@@ -217,7 +217,9 @@ class ModelStateMachine:
         self.frame_assets = {}
         self.input_type = model["input_type"]
         self.fn_preprocessing = preprocessing.load_function(model["preprocessing"])
-        self.fn_postprocessing = postprocessing.load_function(model["postprocessing"])
+        self.fn_postprocessing = postprocessing.load_function(
+            model["postprocessing"]["cls"], model["postprocessing"]["params"]
+        )
         self.output_type = model["output_type"]
 
         # For compressing/decompressing JPEG images
