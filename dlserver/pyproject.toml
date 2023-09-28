@@ -7,6 +7,7 @@ dependencies = [
     "opencv-python-headless",
     "numpy",
     "onnxruntime",
+    "onnxruntime-gpu",
     "matplotlib"
 ]
 

@@ -88,14 +88,14 @@ class segmentation_overlay:
                 output: nd array (1, K, H, W)
         """
 
-        src_img = frame_assets["src_img"]
+        # src_img = frame_assets["src_img"]
         output = frame_assets["output"].squeeze()
 
         # get classification labels
         raw_labels = np.argmax(output, axis=0).astype(np.uint8)
 
         # comput confidence score
-        confidence = float(np.max(output, axis=0).mean())
+        # confidence = float(np.max(output, axis=0).mean())
 
         # generate segmented image
         if self.colorized:
