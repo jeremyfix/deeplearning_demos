@@ -15,6 +15,7 @@ Classification-MobileNetv2.7:
     cls: "ONNX"
     params: 
       url: https://github.com/onnx/models/raw/main/vision/classification/mobilenet/model/mobilenetv2-7.onnx
+      input_field_name: "data"
   preprocessing: "imagenet_preprocess"
   input_type: "image"
   postprocessing: 
@@ -28,6 +29,7 @@ Classification-Resnet50-v2.7:
     cls: "ONNX"
     params:
       url: https://github.com/onnx/models/raw/main/vision/classification/resnet/model/resnet50-v2-7.onnx
+      input_field_name: "data"
   preprocessing: "imagenet_preprocess"
   input_type: "image"
   postprocessing: 
@@ -42,10 +44,13 @@ Segmentation-VOC-FCN-Resnet50-12-int8:
     cls: "ONNX"
     params:
       url: https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/fcn/model/fcn-resnet50-12-int8.onnx
+      input_field_name: "input"
   preprocessing: "imagenet_preprocess"
   input_type: "image"
   postprocessing: 
     cls: "segmentation_overlay"
     params: 
-      labels_from_url: https://github.com/onnx/models/blob/main/vision/object_detection_segmentation/fcn/dependencies/voc_classes.txt
+      num_classes: 21
+      colorized: True
+      blended: True
   output_type: "image"

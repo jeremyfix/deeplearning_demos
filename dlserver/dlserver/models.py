@@ -27,7 +27,7 @@ class ImageToLabel:
 
 
 class ONNX:
-    def __init__(self, modelname: str, url: str):
+    def __init__(self, modelname: str, url: str, input_field_name: str):
 
         # Download the onnx model
         filepath = pathlib.Path(tempfile.gettempdir()) / f"{modelname}.onnx"
@@ -38,9 +38,10 @@ class ONNX:
         self.session = ort.InferenceSession(
             str(filepath), providers=ort.get_available_providers()
         )
+        self.input_field_name = input_field_name
 
     def __call__(self, inp_data, frame_assets: dict):
-        outputs = self.session.run(None, {"data": inp_data})
+        outputs = self.session.run(None, {self.input_field_name: inp_data})
         frame_assets["output"] = outputs[0]
 
 

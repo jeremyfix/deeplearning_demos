@@ -6,7 +6,8 @@ dependencies = [
     "PyYAML>=6.0",
     "opencv-python-headless",
     "numpy",
-    "onnxruntime"
+    "onnxruntime",
+    "matplotlib"
 ]
 
 [tool.setuptools]

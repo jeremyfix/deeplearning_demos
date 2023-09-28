@@ -13,6 +13,8 @@ import urllib.request as request
 
 # External imports
 import cv2
+import numpy as np
+from matplotlib.colors import hsv_to_rgb
 
 
 class label_on_image:
@@ -27,7 +29,7 @@ class label_on_image:
         frame_assets: dict
             Should have the keys :
                 src_img : nd array (H, W, C)
-                label: str
+                output: nd array (K, )
         """
 
         src_img = frame_assets["src_img"]
@@ -55,8 +57,61 @@ class label_on_image:
         return result
 
 
+def get_palette(num_classes: int):
+    # prepare and return palette
+    palette = np.zeros((num_classes, 3))
+
+    for hue in range(num_classes):
+        if hue == 0:  # Background color
+            colors = (0, 0, 0)
+        else:
+            colors = hsv_to_rgb((hue / num_classes, 0.75, 0.75))
+
+        for i in range(3):
+            palette[hue, i] = int(colors[i] * 255)
+
+    return palette
+
+
+class segmentation_overlay:
+    def __init__(self, num_classes: int, colorized: bool, blended: bool):
+        self.num_classes = num_classes
+        self.palette = get_palette(num_classes)
+        self.colorized = colorized
+        self.blended = blended
+
+    def __call__(self, frame_assets: dict):
+        """
+        frame_assets: dict
+            Should have the keys :
+                src_img : nd array (H, W, C)
+                output: nd array (1, K, H, W)
+        """
+
+        src_img = frame_assets["src_img"]
+        output = frame_assets["output"].squeeze()
+
+        # get classification labels
+        raw_labels = np.argmax(output, axis=0).astype(np.uint8)
+
+        # comput confidence score
+        confidence = float(np.max(output, axis=0).mean())
+
+        # generate segmented image
+        if self.colorized:
+            result_img = self.palette[raw_labels, :]
+
+            if self.blended:
+                result_img = 0.5 * frame_assets["resized_img"] + 0.5 * result_img
+
+        return result_img
+
+
 def load_function(postprocessing_name: str, params: dict):
     if postprocessing_name == "None":
         return lambda x: x
     else:
-        return eval(f"{postprocessing_name}(**params)")
+        if params is None:
+            return eval(f"{postprocessing_name}()")
+        else:
+            return eval(f"{postprocessing_name}(**params)")

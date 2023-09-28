@@ -208,7 +208,6 @@ class ModelStateMachine:
 
         self.input_data = None
         self.preprocessed = None
-        self.model_output = None
 
         model_cls = model["model"]["cls"]
         model_params = model["model"]["params"]
@@ -290,8 +289,7 @@ class ModelStateMachine:
         # We got a preprocesse data, we need to perform inference
         # with the neural net
         logging.debug("processing")
-        self.model_output = self.model(self.preprocessed, self.frame_assets)
-        self.frame_assets["model_output"] = self.model_output
+        self.model(self.preprocessed, self.frame_assets)
         return ModelStates.POSTPROCESS
 
     def on_postprocess(self):
@@ -300,8 +298,6 @@ class ModelStateMachine:
         # and loop back to the READY state
         logging.debug("postprocessing")
         result = self.fn_postprocessing(self.frame_assets)
-        # TODO:
-        # Send the result back to the client
         if self.output_type == "image":
             result = self.jpeg_handler.compress(result)[0]
         elif self.output_type == "text":

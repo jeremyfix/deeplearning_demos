@@ -68,6 +68,10 @@ def imagenet_preprocess(img: np.array, frame_assets: dict):
             ),
         )
 
+    frame_assets["resized_img"] = (
+        (img.copy() * imagenet_std + imagenet_mean) * 255
+    ).astype(np.uint8)
+
     # Finally convert the image from (H, W, C) to (1, C, H, W)
     img = img.transpose(2, 0, 1)
     img = img[np.newaxis, ...]
