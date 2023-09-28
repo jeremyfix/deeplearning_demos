@@ -39,12 +39,11 @@ class ONNX:
         if "CUDAExecutionProvider" in available_providers:
             providers = ["CUDAExecutionProvider"]
         elif "CPUExecutionProvider":
-            providers = ['CPUExectionProvider']
+            providers = ["CPUExectionProvider"]
         else:
             providers = available_providers
         logging.debug(f"I will be using the ORT providers : {providers}")
-        self.session = ort.InferenceSession(
-            str(filepath), providers=providers
+        self.session = ort.InferenceSession(str(filepath), providers=providers)
         self.input_field_name = input_field_name
 
     def __call__(self, inp_data, frame_assets: dict):
