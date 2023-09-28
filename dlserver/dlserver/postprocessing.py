@@ -107,6 +107,14 @@ class segmentation_overlay:
         return result_img
 
 
+class bbox_overlay:
+    def __init__(self):
+        pass
+
+    def __call__(self, frame_assets: dict):
+        return frame_assets["src_img"]
+
+
 def load_function(postprocessing_name: str, params: dict):
     if postprocessing_name == "None":
         return lambda x: x

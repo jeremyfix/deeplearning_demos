@@ -10,6 +10,7 @@ TestImageToLabel:
       labels_from_url: https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt
   output_type: "image"
 
+# Image classification
 Classification-MobileNetv2.7:
   model: 
     cls: "ONNX"
@@ -36,6 +37,23 @@ Classification-Resnet50-v2.7:
     cls: "label_on_image"
     params: 
       labels_from_url: https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt
+  output_type: "image"
+
+
+# Object detection
+# The model really expects  (1, 480, 640, 3)
+# TODO : how to adapt the preprocess step ?
+ObjectDetection-RetinaNet-ResNet101:
+  model:
+    cls: "ONNX"
+    params: 
+      url: https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/retinanet/model/retinanet-9.onnx
+      input_field_name: "input"
+  preprocessing: "imagenet_preprocess"
+  input_type: "image"
+  postprocessing: 
+    cls: "bbox_overlay"
+    params:
   output_type: "image"
 
 #TODO: the model advises to use image of size 520 x 520 minimum
