@@ -19,14 +19,12 @@
 import logging
 import sys
 import argparse
-import socket
 
 # Local imports
 from dlclient.client import Client
 
 
 def main():
-
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format="%(message)s")
 
     parser = argparse.ArgumentParser()

@@ -19,7 +19,6 @@
 import argparse
 import logging
 import sys
-import threading
 
 # Local imports
 from dlserver.threaded_server import ThreadedTCPServer
@@ -27,7 +26,6 @@ from dlserver.config import load_config
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--verbose",

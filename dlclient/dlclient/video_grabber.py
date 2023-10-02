@@ -16,20 +16,12 @@
 
 # Standard modules
 from threading import Thread, Lock
-import time
-import sys
 
 # External modules
 import cv2
 
 # Local modules
 from dlclient import utils
-
-
-try:
-    from turbojpeg import TurboJPEG
-except ImportError as error:
-    print("Warning, failed to import turbojpeg, " "you will not be able to use it")
 
 
 class VideoGrabber(Thread):
