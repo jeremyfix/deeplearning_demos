@@ -2,12 +2,17 @@
 
 # This file is part of dlserver.
 
-# dlserver is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+# dlserver is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
 
-# dlserver is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# dlserver is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-# You should have received a copy of the GNU General Public License along with dlserver. If not, see <https://www.gnu.org/licenses/>.
-
+# You should have received a copy of the GNU General Public License along with
+# dlserver. If not, see <https://www.gnu.org/licenses/>.
 
 # External imports
 import yaml
@@ -20,7 +25,6 @@ from typing import Union
 
 
 def load_config(config_path: Union[str, pathlib.Path]):
-
     # Loads the provided config
     if isinstance(config_path, str):
         if len(config_path) >= 9 and config_path[:9] == "config://":
