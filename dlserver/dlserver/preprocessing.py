@@ -19,6 +19,68 @@
 import numpy as np
 
 
+def scale(inarray: np.array, value: float):
+    return inarray / value
+
+
+def normalize(img: np.array, mus: list, stds: list):
+    return (img - np.array(mus)) / np.array(stds)
+
+
+def square_pad(img: np.array):
+    largest_size = max(img.shape[0], img.shape[1])
+    pad_w = largest_size - img.shape[0]
+    pad_h = largest_size - img.shape[1]
+    img = np.pad(
+        img,
+        pad_width=(
+            (pad_w // 2, pad_w - pad_w // 2),
+            (pad_h // 2, pad_h - pad_h // 2),
+            (0, 0),
+        ),
+    )
+    return img
+
+
+def pad(img: np.array, maxsize: int):
+    assert img.shape[0] <= maxsize and img.shape[1] <= maxsize
+    pad_h = maxsize - img.shape[0]
+    pad_w = maxsize - img.shape[1]
+    img = np.pad(
+        img,
+        pad_width=(
+            (pad_h // 2, pad_h - pad_h // 2),
+            (pad_w // 2, pad_w - pad_w // 2),
+            (0, 0),
+        ),
+    )
+    return img
+
+
+def center_crop(img: np.array, cropsize: int):
+    assert img.shape[0] >= cropsize and img.shape[1] >= cropsize
+    h, w, c = img.shape
+    start_y = h // 2 - cropsize // 2
+    start_x = w // 2 - cropsize // 2
+    return img[start_y : start_y + cropsize, start_x : start_x + cropsize, :]
+
+
+def pad_or_crop(img: np.array, targetsize: int):
+    largest_size = max(img.shape[0], img.shape[1])
+    if largest_size > targetsize:
+        return center_crop(img, targetsize)
+    else:
+        return pad(img, targetsize)
+
+
+def transpose(img: np.array, dims):
+    return img.transpose(*dims)
+
+
+def astype(img: np.array, ttype: str):
+    return img.astype(ttype)
+
+
 def imagenet_preprocess(img: np.array, frame_assets: dict):
     """
     img: np.array
@@ -63,8 +125,8 @@ def imagenet_preprocess(img: np.array, frame_assets: dict):
     else:
         # Otherwise we pad again
         # Pad, if necessary, the image to be (224, 224)
-        pad_w = 224 - img.shape[0]
-        pad_h = 224 - img.shape[1]
+        pad_h = 224 - img.shape[0]
+        pad_w = 224 - img.shape[1]
         img = np.pad(
             img,
             pad_width=(
@@ -86,8 +148,40 @@ def imagenet_preprocess(img: np.array, frame_assets: dict):
     return img
 
 
-def load_function(preprocessing_name: str):
-    if preprocessing_name == "None":
-        return lambda x: x
+def compose(inarray, fns: list):
+    for fn in fns:
+        inarray = fn(inarray)
+    return inarray
+
+
+def load_function(preprocessings: str | list):
+    # preprocessing can be either a string or a dictionary
+    if isinstance(preprocessings, str):
+        return eval(preprocessings)
     else:
-        return eval(preprocessing_name)
+        # iterate over the list making up the pipeline
+        # and compose all the transforms
+        fns = []
+        for fn_params in preprocessings:
+            fn, params = next(iter(fn_params.items()))
+            fns.append(eval(f"lambda inarray, params=params: {fn}(inarray, **params)"))
+        return lambda inarray: compose(inarray, fns)
+
+
+def test_preprocessing():
+    preprocessing_params = [
+        {"scale": {"value": 255.0}},
+        {"normalize": {"mus": [0.485, 0.456, 0.406], "stds": [0.229, 0.224, 0.225]}},
+        {"pad_or_crop": {"targetsize": 224}},
+        {"transpose": {"dims": [2, 0, 1]}},
+        {"astype": {"ttype": "float32"}},
+    ]
+    fn_preprocessing = load_function(preprocessing_params)
+
+    x = np.random.random((2, 4, 3))
+    y = fn_preprocessing(x)
+    print(x, y, y.shape)
+
+
+if __name__ == "__main__":
+    test_preprocessing()

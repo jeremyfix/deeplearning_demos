@@ -17,7 +17,12 @@ Classification-MobileNetv2.7:
     params: 
       url: https://github.com/onnx/models/raw/main/vision/classification/mobilenet/model/mobilenetv2-7.onnx
       input_field_name: "data"
-  preprocessing: "imagenet_preprocess"
+  preprocessing: 
+    - scale: 
+        value: 255.
+    - normalize:
+        mus: [0.485, 0.456, 0.406]
+        stds: [0.229, 0.224, 0.225]
   input_type: "image"
   postprocessing: 
     cls: "label_on_image"
