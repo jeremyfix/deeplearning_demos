@@ -162,7 +162,7 @@ class VideoOutputDisplayer:
 
 
 class Client:
-    def __init__(self, hostname, port):
+    def __init__(self, hostname, port, device_id, resize_factor):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((hostname, port))
         self.current_state = ClientStates.INIT
@@ -185,8 +185,8 @@ class Client:
         # Parameters if we use a webcam provider
         self.jpeg_lib = "cv2"
         self.jpeg_quality = 100
-        self.resize_factor = 0.5
-        self.device_id = 4
+        self.resize_factor = resize_factor
+        self.device_id = device_id
 
         self.input_type = None
         self.input_provider = None
@@ -263,7 +263,6 @@ class Client:
             # And loop back to frame
             return ClientStates.FRAME
         else:
-
             # Release the input grabber
             self.input_provider.release()
             del self.input_provider

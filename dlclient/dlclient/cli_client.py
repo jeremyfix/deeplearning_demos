@@ -42,9 +42,23 @@ def main():
         help="The port on which to connect",
         action="store",
     )
+    parser.add_argument(
+        "--device_id",
+        default=0,
+        type=int,
+        help="The device id to be used for providing the camera input for opencv",
+        action="store",
+    )
+    parser.add_argument(
+        "--resize_factor",
+        default=1.0,
+        type=float,
+        help="The resize factor applied to the grabbed camera before sending",
+        action="store",
+    )
     args = parser.parse_args()
 
-    client = Client(args.hostname, args.port)
+    client = Client(args.hostname, args.port, args.device_id, args.resize_factor)
     client.run()
 
 
