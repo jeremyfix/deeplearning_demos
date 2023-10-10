@@ -20,21 +20,26 @@ import numpy as np
 from PIL import Image
 
 
-def resize(inarray: np.array, height: int, width: int):
+def save_asset(inarray: np.array, key: str, frame_assets: dict):
+    frame_assets[key] = inarray.copy()
+    return inarray
+
+
+def resize(inarray: np.array, height: int, width: int, frame_assets: dict):
     inpil = Image.fromarray(inarray)
     inpil = inpil.resize((width, height))
     return np.array(inpil)
 
 
-def scale(inarray: np.array, value: float):
+def scale(inarray: np.array, value: float, frame_assets: dict):
     return inarray / value
 
 
-def normalize(img: np.array, mus: list, stds: list):
+def normalize(img: np.array, mus: list, stds: list, frame_assets: dict):
     return (img - np.array(mus)) / np.array(stds)
 
 
-def square_pad(img: np.array):
+def square_pad(img: np.array, frame_assets: dict):
     largest_size = max(img.shape[0], img.shape[1])
     pad_w = largest_size - img.shape[0]
     pad_h = largest_size - img.shape[1]
@@ -49,7 +54,7 @@ def square_pad(img: np.array):
     return img
 
 
-def pad(img: np.array, maxsize: int):
+def pad(img: np.array, maxsize: int, frame_assets: dict):
     assert img.shape[0] <= maxsize and img.shape[1] <= maxsize
     pad_h = maxsize - img.shape[0]
     pad_w = maxsize - img.shape[1]
@@ -64,7 +69,7 @@ def pad(img: np.array, maxsize: int):
     return img
 
 
-def center_crop(img: np.array, cropsize: int):
+def center_crop(img: np.array, cropsize: int, frame_assets: dict):
     assert img.shape[0] >= cropsize and img.shape[1] >= cropsize
     h, w, c = img.shape
     start_y = h // 2 - cropsize // 2
@@ -72,19 +77,19 @@ def center_crop(img: np.array, cropsize: int):
     return img[start_y : start_y + cropsize, start_x : start_x + cropsize, :]
 
 
-def pad_or_crop(img: np.array, targetsize: int):
+def pad_or_crop(img: np.array, targetsize: int, frame_assets: dict):
     largest_size = max(img.shape[0], img.shape[1])
     if largest_size > targetsize:
-        return center_crop(img, targetsize)
+        return center_crop(img, targetsize, frame_assets)
     else:
-        return pad(img, targetsize)
+        return pad(img, targetsize, frame_assets)
 
 
-def transpose(img: np.array, dims):
+def transpose(img: np.array, dims, frame_assets: dict):
     return img.transpose(*dims)
 
 
-def astype(img: np.array, ttype: str):
+def astype(img: np.array, ttype: str, frame_assets: dict):
     return img.astype(ttype)
 
 
@@ -155,9 +160,10 @@ def imagenet_preprocess(img: np.array, frame_assets: dict):
     return img
 
 
-def compose(inarray, fns: list):
+def compose(inarray, fns: list, frame_assets: dict):
     for fn in fns:
-        inarray = fn(inarray)
+        print(fn)
+        inarray = fn(inarray, frame_assets)
     return inarray
 
 
@@ -171,13 +177,18 @@ def load_function(preprocessings: str | list):
         fns = []
         for fn_params in preprocessings:
             fn, params = next(iter(fn_params.items()))
-            fns.append(eval(f"lambda inarray, params=params: {fn}(inarray, **params)"))
-        return lambda inarray: compose(inarray, fns)
+            fns.append(
+                eval(
+                    f"lambda inarray, frame_assets, params=params:{fn}(inarray, frame_assets=frame_assets,**params)"
+                )
+            )
+        return lambda inarray, frame_assets: compose(inarray, fns, frame_assets)
 
 
 def test_preprocessing():
     preprocessing_params = [
         {"resize": {"height": 256, "width": 256}},
+        {"save_asset": {"key": "resize_img"}},
         {"scale": {"value": 255.0}},
         {"normalize": {"mus": [0.485, 0.456, 0.406], "stds": [0.229, 0.224, 0.225]}},
         {"pad_or_crop": {"targetsize": 224}},
@@ -186,12 +197,14 @@ def test_preprocessing():
     ]
     fn_preprocessing = load_function(preprocessing_params)
 
+    frame_assets = {}
     x = np.random.randint(low=0, high=255, size=(68, 128, 3), dtype=np.uint8)
-    y = fn_preprocessing(x)
+    y = fn_preprocessing(x, frame_assets)
     y = (y * 255).astype(np.uint8)
     print(y.dtype, y.shape)
     Image.fromarray(y).show()
     print(x, y, y.shape)
+    print(frame_assets)
 
 
 if __name__ == "__main__":
