@@ -44,7 +44,7 @@ class ONNX:
         if "CUDAExecutionProvider" in available_providers:
             providers = ["CUDAExecutionProvider"]
         elif "CPUExecutionProvider":
-            providers = ["CPUExectionProvider"]
+            providers = ["CPUExecutionProvider"]
         else:
             providers = available_providers
         logging.debug(f"I will be using the ORT providers : {providers}")
