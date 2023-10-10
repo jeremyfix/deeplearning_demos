@@ -17,6 +17,13 @@
 
 # External imports
 import numpy as np
+from PIL import Image
+
+
+def resize(inarray: np.array, height: int, width: int):
+    inpil = Image.fromarray(inarray)
+    inpil = inpil.resize((width, height))
+    return np.array(inpil)
 
 
 def scale(inarray: np.array, value: float):
@@ -170,16 +177,20 @@ def load_function(preprocessings: str | list):
 
 def test_preprocessing():
     preprocessing_params = [
+        {"resize": {"height": 256, "width": 256}},
         {"scale": {"value": 255.0}},
         {"normalize": {"mus": [0.485, 0.456, 0.406], "stds": [0.229, 0.224, 0.225]}},
         {"pad_or_crop": {"targetsize": 224}},
-        {"transpose": {"dims": [2, 0, 1]}},
+        # {"transpose": {"dims": [2, 0, 1]}},
         {"astype": {"ttype": "float32"}},
     ]
     fn_preprocessing = load_function(preprocessing_params)
 
-    x = np.random.random((2, 4, 3))
+    x = np.random.randint(low=0, high=255, size=(68, 128, 3), dtype=np.uint8)
     y = fn_preprocessing(x)
+    y = (y * 255).astype(np.uint8)
+    print(y.dtype, y.shape)
+    Image.fromarray(y).show()
     print(x, y, y.shape)
 
 
