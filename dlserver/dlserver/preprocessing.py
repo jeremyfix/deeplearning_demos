@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License along with
 # dlserver. If not, see <https://www.gnu.org/licenses/>.
 
-
 # External imports
 import numpy as np
 from PIL import Image
@@ -90,10 +89,28 @@ def transpose(img: np.array, dims, frame_assets: dict):
 
 
 def astype(img: np.array, ttype: str, frame_assets: dict):
-    return img.astype(ttype)
+    img = img.astype(ttype)
+    return img
 
 
-def imagenet_preprocess(img: np.array, frame_assets: dict):
+def add_frontdim(img: np.array, frame_assets: dict):
+    return img[np.newaxis, ...]
+
+
+def imagenet_preprocess():
+    preprocessing_params = [
+        {"pad_or_crop": {"targetsize": 224}},
+        {"save_asset": {"key": "resized_img"}},
+        {"scale": {"value": 255.0}},
+        {"normalize": {"mus": [0.485, 0.456, 0.406], "stds": [0.229, 0.224, 0.225]}},
+        {"transpose": {"dims": [2, 0, 1]}},
+        {"astype": {"ttype": "float32"}},
+        {"add_frontdim": {}},
+    ]
+    return load_compose(preprocessing_params)
+
+
+def OLD_imagenet_preprocess(img: np.array, frame_assets: dict):
     """
     img: np.array
         The input image in (H, W, C)
@@ -162,47 +179,51 @@ def imagenet_preprocess(img: np.array, frame_assets: dict):
 
 def compose(inarray, fns: list, frame_assets: dict):
     for fn in fns:
-        print(fn)
         inarray = fn(inarray, frame_assets)
     return inarray
+
+
+def load_compose(preprocessings: list):
+    # iterate over the list making up the pipeline
+    # and compose all the transforms
+    fns = []
+    for fn_params in preprocessings:
+        fn, params = next(iter(fn_params.items()))
+        fns.append(
+            eval(
+                f"lambda inarray, frame_assets, params=params:{fn}(inarray, frame_assets=frame_assets,**params)"
+            )
+        )
+    return lambda inarray, frame_assets: compose(inarray, fns, frame_assets)
 
 
 def load_function(preprocessings: str | list):
     # preprocessing can be either a string or a dictionary
     if isinstance(preprocessings, str):
-        return eval(preprocessings)
+        return eval(preprocessings)()
     else:
-        # iterate over the list making up the pipeline
-        # and compose all the transforms
-        fns = []
-        for fn_params in preprocessings:
-            fn, params = next(iter(fn_params.items()))
-            fns.append(
-                eval(
-                    f"lambda inarray, frame_assets, params=params:{fn}(inarray, frame_assets=frame_assets,**params)"
-                )
-            )
-        return lambda inarray, frame_assets: compose(inarray, fns, frame_assets)
+        return load_compose(preprocessings)
 
 
 def test_preprocessing():
-    preprocessing_params = [
-        {"resize": {"height": 256, "width": 256}},
-        {"save_asset": {"key": "resize_img"}},
-        {"scale": {"value": 255.0}},
-        {"normalize": {"mus": [0.485, 0.456, 0.406], "stds": [0.229, 0.224, 0.225]}},
-        {"pad_or_crop": {"targetsize": 224}},
-        # {"transpose": {"dims": [2, 0, 1]}},
-        {"astype": {"ttype": "float32"}},
-    ]
-    fn_preprocessing = load_function(preprocessing_params)
+    # preprocessing_params = [
+    #     {"resize": {"height": 256, "width": 256}},
+    #     {"save_asset": {"key": "resize_img"}},
+    #     {"scale": {"value": 255.0}},
+    #     {"normalize": {"mus": [0.485, 0.456, 0.406], "stds": [0.229, 0.224, 0.225]}},
+    #     {"pad_or_crop": {"targetsize": 224}},
+    #     # {"transpose": {"dims": [2, 0, 1]}},
+    #     {"astype": {"ttype": "float32"}},
+    # ]
+    # fn_preprocessing = load_function(preprocessing_params)
+    fn_preprocessing = load_function("imagenet_preprocess")
 
     frame_assets = {}
     x = np.random.randint(low=0, high=255, size=(68, 128, 3), dtype=np.uint8)
     y = fn_preprocessing(x, frame_assets)
     y = (y * 255).astype(np.uint8)
     print(y.dtype, y.shape)
-    Image.fromarray(y).show()
+    # Image.fromarray(y).show()
     print(x, y, y.shape)
     print(frame_assets)
 
