@@ -221,11 +221,11 @@ def test_preprocessing():
     frame_assets = {}
     x = np.random.randint(low=0, high=255, size=(68, 128, 3), dtype=np.uint8)
     y = fn_preprocessing(x, frame_assets)
-    y = (y * 255).astype(np.uint8)
+    # y = (y * 255).astype(np.uint8)
     print(y.dtype, y.shape)
     # Image.fromarray(y).show()
-    print(x, y, y.shape)
-    print(frame_assets)
+    # print(x, y, y.shape)
+    # print(frame_assets)
 
 
 if __name__ == "__main__":

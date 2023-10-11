@@ -292,7 +292,7 @@ class ModelStateMachine:
     def on_process(self):
         # We got a preprocesse data, we need to perform inference
         # with the neural net
-        logging.debug("processing")
+        logging.debug(f"processing input of type {self.preprocessed.dtype}")
         self.model(self.preprocessed, self.frame_assets)
         return ModelStates.POSTPROCESS
 
