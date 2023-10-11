@@ -84,7 +84,6 @@ class VideoGrabber(Thread):
             # Protected by a lock
             # As the main thread may asks to access the buffer
             self.lock.acquire()
-            self.img = img
             self.buffer = self.jpeg_handler.compress(
                 cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             )
