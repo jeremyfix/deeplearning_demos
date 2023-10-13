@@ -87,3 +87,36 @@ Segmentation-VOC-FCN-Resnet50-12-int8:
       colorized: True
       blended: True
   output_type: "image"
+
+
+Segmentation-Yolov8n:
+  model: 
+    cls: "ONNX"
+    params:
+      url: https://github.com/jeremyfix/onnx_models/raw/main/Vision/Segmentation/Yolov8/yolov8n-seg.onnx
+      input_field_name: "images"
+  preprocessing: 
+    - square_pad:
+    - resize:
+        width: 640
+        height: 640
+    - save_asset: 
+        key: "resized_img"
+    - scale:
+        value: 255.0
+    - normalize: 
+        mus: [0.485, 0.456, 0.406]
+        stds: [0.229, 0.224, 0.225]
+    - transpose:
+        dims: [2, 0, 1]
+    - astype: 
+        ttype: "float32"
+    - add_frontdim:
+  input_type: "image"
+  postprocessing: 
+    cls: "segmentation_overlay"
+    params: 
+      num_classes: 21
+      colorized: True
+      blended: True
+  output_type: "image"

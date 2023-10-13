@@ -40,7 +40,7 @@ class label_on_image:
 
         src_img = frame_assets["src_img"]
 
-        scores = frame_assets["output"]
+        scores = frame_assets["outputs"][0]
         cls_id = scores.argmax()
         label = self.labels[cls_id]
 
@@ -95,7 +95,7 @@ class segmentation_overlay:
         """
 
         # src_img = frame_assets["src_img"]
-        output = frame_assets["output"].squeeze()
+        output = frame_assets["outputs"][0].squeeze()
 
         # get classification labels
         raw_labels = np.argmax(output, axis=0).astype(np.uint8)
