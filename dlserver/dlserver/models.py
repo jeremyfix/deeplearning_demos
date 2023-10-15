@@ -81,22 +81,28 @@ def test_yolov8():
     # see
     # https://dev.to/andreygermanov/how-to-implement-instance-segmentation-using-yolov8-neural-network-3if9
     from PIL import Image
+    from . import preprocessing
 
     url = "https://github.com/jeremyfix/onnx_models/raw/main/Vision/Segmentation/Yolov8/yolov8n-seg.onnx"
     input_field_name = "images"
     model = ONNX("yolov8n", url, input_field_name)
 
-    X = Image.open("bus.jpg").resize((640, 640))
-
-    X = np.array(X)
-    X = X / 255.0
-    X = X.transpose(2, 0, 1)
-    X = X[np.newaxis, ...]
-    X = X.astype("float32")
-    print(X.shape)
-
-    # X = np.random.random((1, 3, 640, 640)).astype("float32")
     assets = {}
+    preprocessing_params = [
+        {"square_pad": {}},
+        {"save_asset": {"key": "resized_img"}},
+        {"resize": {"width": 640, "height": 640}},
+        {"scale": {"value": 255.0}},
+        {"transpose": {"dims": [2, 0, 1]}},
+        {"add_frontdim": {}},
+        {"astype": {"ttype": "float32"}},
+    ]
+    fn_preprocessing = preprocessing.load_function(preprocessing_params)
+
+    X = Image.open("bus.jpg")  # .resize((640, 640))
+    X = np.array(X)
+    X = fn_preprocessing(X, assets)
+
     model(X, assets)
 
     # The first output is 1, 116, 8400
@@ -130,13 +136,12 @@ def test_yolov8():
     plt.figure()
     for ci, xi in zip(boxes_confidences, weighted_masks):
         pimax = 1.0 / (1.0 + np.exp(-ci.max()))
-        if pimax >= 0.6:
+        if pimax >= 0.55:
             best_cls = ci.argmax()
-            print(f"plot {pimax}; argmax : {ci.argmax()}")
-            if best_cls == 0:
-                plt.imshow(255 * (xi > 0.5).astype("uint8"))
-    # xi_bus = output_masks[0, 0]
-    # plt.imshow(xi_bus)
+            binary_mask = (255 * (xi.squeeze() > 0.5)).astype("uint8")
+            binary_mask = preprocessing.resize(binary_mask, 640, 640, assets)
+            print(f"plot {pimax}; argmax : {best_cls}, shape {xi.shape}")
+            plt.imshow(binary_mask)
     plt.show()
 
 
