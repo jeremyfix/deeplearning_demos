@@ -269,6 +269,8 @@ class yolov8_seg:
         ]
         self.confidence_threshold = 0.5
         self.iou_threshold = 0.8
+        self.height_text_box = 10
+        self.width_text_box = 100
 
     def __call__(self, frame_assets: dict):
         # The first output is 1, 116, 8400
@@ -316,9 +318,11 @@ class yolov8_seg:
             if pimax >= self.confidence_threshold:
                 box = ((x1, y1), (x2, y2))
 
-                binary_mask = np.zeros(xi.shape, dtype=bool)
-                binary_mask[y1:y2, x1:x2] = (xi.squeeze() > 0.5)[y1:y2, x1:x2]
-                binary_mask = preprocessing.resize(binary_mask, 640, 640, frame_assets)
+                binary_mask = np.zeros((640, 640), dtype=bool)
+                resized_mask = preprocessing.resize(
+                    (xi.squeeze() > 0.5), 640, 640, frame_assets
+                )
+                binary_mask[y1:y2, x1:x2] = resized_mask[y1:y2, x1:x2]
                 # +1 to let the class 0 as the background
                 prob_cls_masks.append((pimax, best_cls + 1, box, binary_mask))
 
@@ -342,30 +346,19 @@ class yolov8_seg:
             prob_cls_masks = prob_cls_masks_new
         # print(f"Kept : {len(filtered_prob_cls_masks)} bounding boxes")
 
-        # Merge all the selected masks to produce the segmentation
-        # labels = np.zeros((1, 640, 640), dtype=np.int16)  # 0 for background
-        # for _, k, b, m in prob_cls_masks:
-        #     idx = m.flatten()
-        #     labels[0, ...].ravel()[idx] = k + 1
-        # frame_assets["outputs"] = labels
-
-        # img_with_seg = postprocessing.segmentation_overlay(
-        #     num_classes, colorized=True, blended=True
-        # )(frame_assets)
-
         img = frame_assets["resized_img"]
-
-        height_text_box = 10
-        width_text_box = 70
+        img = (img * 0.5).astype(np.uint8)
 
         # Draw the boxes
         for p, k, b, m in filtered_prob_cls_masks:
             (x1, y1), (x2, y2) = b
 
             color = self.colors[k]
+            img[m] = 0.5 * img[m] + 0.5 * np.array(color)
+
             cv2.rectangle(
                 img,
-                (int(x1 + width_text_box), int(y1 + height_text_box)),
+                (int(x1 + self.width_text_box), int(y1 + self.height_text_box)),
                 (x1, y1),
                 color=color,
                 thickness=-1,
@@ -373,7 +366,7 @@ class yolov8_seg:
             cv2.putText(
                 img,
                 f"{self.labels[k - 1]} {p:.2f}",
-                (x1, y1 + height_text_box),
+                (x1, y1 + self.height_text_box),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
                 (255, 255, 255),

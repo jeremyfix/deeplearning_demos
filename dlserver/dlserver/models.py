@@ -86,11 +86,9 @@ def test_yolov8():
     from . import preprocessing
     from . import postprocessing
 
-    url = "https://github.com/jeremyfix/onnx_models/raw/main/Vision/ObjectDetection/Yolov8/yolov8n.pt"
-    # url = "https://github.com/jeremyfix/onnx_models/raw/main/Vision/Segmentation/Yolov8/yolov8n-seg.onnx"
+    url = "https://github.com/jeremyfix/onnx_models/raw/main/Vision/Segmentation/Yolov8/yolov8n-seg.onnx"
     input_field_name = "images"
-    print(url)
-    model = ONNX("yolov8n", url, input_field_name)
+    model = ONNX("yolov8n-seg", url, input_field_name)
 
     assets = {}
     preprocessing_params = [
@@ -114,7 +112,7 @@ def test_yolov8():
 
     label_url = "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
     fn_postprocessing = postprocessing.load_function(
-        "yolov8_bbox", {"labels_from_url": label_url}
+        "yolov8_seg", {"labels_from_url": label_url}
     )
 
     img = fn_postprocessing(assets)

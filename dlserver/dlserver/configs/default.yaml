@@ -115,7 +115,6 @@ ObjectDetection-Yolov8n:
       labels_from_url: "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
   output_type: "image"
 
-# TODO: fix segmentation mask computation/drawing
 Segmentation-Yolov8n:
   model: 
     cls: "ONNX"
@@ -138,9 +137,7 @@ Segmentation-Yolov8n:
     - add_frontdim:
   input_type: "image"
   postprocessing: 
-    cls: "segmentation_overlay"
+    cls: "yolov8_seg"
     params: 
-      num_classes: 21
-      colorized: True
-      blended: True
+      labels_from_url: "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
   output_type: "image"
