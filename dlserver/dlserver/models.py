@@ -37,6 +37,7 @@ class ONNX:
     def __init__(self, modelname: str, url: str, input_field_name: str):
         # Download the onnx model
         filepath = pathlib.Path(tempfile.gettempdir()) / f"{modelname}.onnx"
+        print(filepath)
         if not filepath.exists():
             logging.debug(f"Downloading {url} into {filepath}")
             request.urlretrieve(url, filename=filepath)
@@ -80,18 +81,22 @@ def test_yolov8():
     # Note :
     # see
     # https://dev.to/andreygermanov/how-to-implement-instance-segmentation-using-yolov8-neural-network-3if9
+    import matplotlib.pyplot as plt
     from PIL import Image
     from . import preprocessing
+    from . import postprocessing
 
-    url = "https://github.com/jeremyfix/onnx_models/raw/main/Vision/Segmentation/Yolov8/yolov8n-seg.onnx"
+    url = "https://github.com/jeremyfix/onnx_models/raw/main/Vision/ObjectDetection/Yolov8/yolov8n.pt"
+    # url = "https://github.com/jeremyfix/onnx_models/raw/main/Vision/Segmentation/Yolov8/yolov8n-seg.onnx"
     input_field_name = "images"
+    print(url)
     model = ONNX("yolov8n", url, input_field_name)
 
     assets = {}
     preprocessing_params = [
         {"square_pad": {}},
-        {"save_asset": {"key": "resized_img"}},
         {"resize": {"width": 640, "height": 640}},
+        {"save_asset": {"key": "resized_img"}},
         {"scale": {"value": 255.0}},
         {"transpose": {"dims": [2, 0, 1]}},
         {"add_frontdim": {}},
@@ -99,49 +104,23 @@ def test_yolov8():
     ]
     fn_preprocessing = preprocessing.load_function(preprocessing_params)
 
-    X = Image.open("bus.jpg")  # .resize((640, 640))
+    # image_str = "people.jpeg"
+    image_str = "animals.jpg"
+    X = Image.open(image_str)  # .resize((640, 640))
     X = np.array(X)
     X = fn_preprocessing(X, assets)
 
     model(X, assets)
 
-    # The first output is 1, 116, 8400
-    # For 8400 predicted bounding boxes, each with 116 attributes
-    # 4 coordinates: xc, yc, width, height
-    # 80 classes confidences
-    # 32 masks weights
+    label_url = "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
+    fn_postprocessing = postprocessing.load_function(
+        "yolov8_bbox", {"labels_from_url": label_url}
+    )
 
-    # The second output is 1, 32, 160, 160 and contain the 32 prototype masks
-    # each mask being of size 160 x 160
-
-    flattened_output = assets["outputs"][0].squeeze()  # 1, 116, 8400
-    boxes = flattened_output[:84, :].transpose()  # 8400, 84
-    boxes_coordinates = boxes[:, :4]
-    boxes_confidences = boxes[:, 4:]
-    masks_weights = flattened_output[84:, :].transpose()  # 8400, 32
-    num_predictions = masks_weights.shape[0]
-    num_masks = masks_weights.shape[1]
-
-    prototype_masks = assets["outputs"][1].squeeze()  # 32, 160, 160
-    mask_height, mask_width = prototype_masks.shape[1:]
-
-    weighted_masks = masks_weights @ (
-        prototype_masks.reshape(num_masks, -1)
-    )  # 8400, 160 x 160
-    weighted_masks = weighted_masks.reshape((num_predictions, mask_height, mask_width))
-    print(weighted_masks.shape)
-
-    import matplotlib.pyplot as plt
+    img = fn_postprocessing(assets)
 
     plt.figure()
-    for ci, xi in zip(boxes_confidences, weighted_masks):
-        pimax = 1.0 / (1.0 + np.exp(-ci.max()))
-        if pimax >= 0.55:
-            best_cls = ci.argmax()
-            binary_mask = (255 * (xi.squeeze() > 0.5)).astype("uint8")
-            binary_mask = preprocessing.resize(binary_mask, 640, 640, assets)
-            print(f"plot {pimax}; argmax : {best_cls}, shape {xi.shape}")
-            plt.imshow(binary_mask)
+    plt.imshow(img)
     plt.show()
 
 

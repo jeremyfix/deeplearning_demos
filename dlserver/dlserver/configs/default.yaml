@@ -88,7 +88,34 @@ Segmentation-VOC-FCN-Resnet50-12-int8:
       blended: True
   output_type: "image"
 
+ObjectDetection-Yolov8n:
+  model: 
+    cls: "ONNX"
+    params:
+      url: https://github.com/jeremyfix/onnx_models/raw/main/Vision/ObjectDetection/Yolov8/yolov8n.pt
+      input_field_name: "images"
+  preprocessing: 
+    - square_pad:
+    - resize:
+        width: 640
+        height: 640
+    - save_asset: 
+        key: "resized_img"
+    - scale:
+        value: 255.0
+    - transpose:
+        dims: [2, 0, 1]
+    - astype: 
+        ttype: "float32"
+    - add_frontdim:
+  input_type: "image"
+  postprocessing: 
+    cls: "yolov8_bbox"
+    params: 
+      labels_from_url: "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
+  output_type: "image"
 
+# TODO: fix segmentation mask computation/drawing
 Segmentation-Yolov8n:
   model: 
     cls: "ONNX"
