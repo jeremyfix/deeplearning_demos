@@ -39,6 +39,7 @@ Classification-Resnet50-v2.7:
       labels_from_url: https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt
   output_type: "image"
 
+# Object detection with bounding boxes
 ObjectDetection-Yolov8n:
   model: 
     cls: "ONNX"
@@ -66,6 +67,7 @@ ObjectDetection-Yolov8n:
       labels_from_url: "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
   output_type: "image"
 
+# Instance segmentation with Yolov8-seg
 Segmentation-Yolov8n:
   model: 
     cls: "ONNX"
@@ -93,6 +95,7 @@ Segmentation-Yolov8n:
       labels_from_url: "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
   output_type: "image"
 
+# Semantic segmentation (worse than yolov8)
 Segmentation-VOC-FCN-Resnet50-12-int8:
   model: 
     cls: "ONNX"
