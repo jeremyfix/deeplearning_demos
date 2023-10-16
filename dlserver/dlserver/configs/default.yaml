@@ -39,55 +39,6 @@ Classification-Resnet50-v2.7:
       labels_from_url: https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt
   output_type: "image"
 
-
-# Object detection
-# The model really expects  (1, 480, 640, 3)
-# TODO : how to adapt the preprocess step ?
-ObjectDetection-RetinaNet-ResNet101:
-  model:
-    cls: "ONNX"
-    params: 
-      url: https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/retinanet/model/retinanet-9.onnx
-      input_field_name: "input"
-  preprocessing: "imagenet_preprocess"
-  input_type: "image"
-  postprocessing: 
-    cls: "bbox_overlay"
-    params:
-  output_type: "image"
-
-Segmentation-VOC-FCN-Resnet50-12-int8:
-  model: 
-    cls: "ONNX"
-    params:
-      url: https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/fcn/model/fcn-resnet50-12-int8.onnx
-      input_field_name: "input"
-  preprocessing: 
-    - square_pad:
-    - resize:
-        width: 520
-        height: 520
-    - save_asset: 
-        key: "resized_img"
-    - scale:
-        value: 255.0
-    - normalize: 
-        mus: [0.485, 0.456, 0.406]
-        stds: [0.229, 0.224, 0.225]
-    - transpose:
-        dims: [2, 0, 1]
-    - astype: 
-        ttype: "float32"
-    - add_frontdim:
-  input_type: "image"
-  postprocessing: 
-    cls: "segmentation_overlay"
-    params: 
-      num_classes: 21
-      colorized: True
-      blended: True
-  output_type: "image"
-
 ObjectDetection-Yolov8n:
   model: 
     cls: "ONNX"
@@ -141,3 +92,37 @@ Segmentation-Yolov8n:
     params: 
       labels_from_url: "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
   output_type: "image"
+
+Segmentation-VOC-FCN-Resnet50-12-int8:
+  model: 
+    cls: "ONNX"
+    params:
+      url: https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/fcn/model/fcn-resnet50-12-int8.onnx
+      input_field_name: "input"
+  preprocessing: 
+    - square_pad:
+    - resize:
+        width: 520
+        height: 520
+    - save_asset: 
+        key: "resized_img"
+    - scale:
+        value: 255.0
+    - normalize: 
+        mus: [0.485, 0.456, 0.406]
+        stds: [0.229, 0.224, 0.225]
+    - transpose:
+        dims: [2, 0, 1]
+    - astype: 
+        ttype: "float32"
+    - add_frontdim:
+  input_type: "image"
+  postprocessing: 
+    cls: "segmentation_overlay"
+    params: 
+      num_classes: 21
+      colorized: True
+      blended: True
+  output_type: "image"
+
+
