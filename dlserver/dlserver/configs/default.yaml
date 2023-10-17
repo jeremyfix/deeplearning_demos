@@ -32,7 +32,7 @@ ObjectDetection-Yolov8n:
   model: 
     cls: "ONNX"
     params:
-      url: https://github.com/jeremyfix/onnx_models/raw/main/Vision/ObjectDetection/Yolov8/yolov8n.pt
+      url: https://github.com/jeremyfix/onnx_models/raw/main/Vision/ObjectDetection/Yolov8/yolov8n.onnx
       input_field_name: "images"
   preprocessing: 
     - square_pad:
