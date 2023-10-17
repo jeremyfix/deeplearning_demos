@@ -42,6 +42,7 @@ class ONNX:
             logging.debug(f"Downloading {url} into {filepath}")
             request.urlretrieve(url, filename=filepath)
         logging.debug(f"Available ORT providers : {ort.get_available_providers()}")
+
         available_providers = ort.get_available_providers()
         if "CUDAExecutionProvider" in available_providers:
             providers = ["CUDAExecutionProvider"]
@@ -51,6 +52,7 @@ class ONNX:
             providers = available_providers
         logging.debug(f"I will be using the ORT providers : {providers}")
         self.session = ort.InferenceSession(str(filepath), providers=providers)
+
         self.input_field_name = input_field_name
 
     def __call__(self, inp_data, frame_assets: dict):
