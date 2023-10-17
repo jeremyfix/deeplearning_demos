@@ -108,7 +108,6 @@ def preprompt(txt, frame_assets: dict, preprompt: str):
 def tokenize(txt, frame_assets: dict, **kwargs):
     if not hasattr(tokenize, "tokenizer"):
         tokenize.tokenizer = transformers.AutoTokenizer.from_pretrained(**kwargs)
-    frame_assets["src_txt"] = txt
     return tokenize.tokenizer(txt, return_tensors="pt").input_ids
 
 

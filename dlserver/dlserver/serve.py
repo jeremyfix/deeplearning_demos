@@ -30,7 +30,7 @@ def main():
     parser.add_argument(
         "--verbose",
         default=logging.INFO,
-        help="Verbosity level",
+        help=f"Verbosity level, INFO({logging.INFO}), DEBUG({logging.DEBUG})",
         type=int,
         choices=[logging.INFO, logging.DEBUG],
     )

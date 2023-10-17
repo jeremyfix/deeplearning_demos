@@ -28,7 +28,7 @@ ClientStates = Enum(
 # Number of bytes for encoding the command and the message length
 MSG_LENGTH_NUMBYTES = 6
 ENDIANESS = "big"
-STR_ENCODING = "ascii"
+STR_ENCODING = "utf-8"
 # Mapping from the human readable ascii commands to their byte code
 MASTER_COMMAND_LENGTH = 1  # To be adjusted if need, according to below
 COMMANDS_ENCODINGS = {
@@ -102,6 +102,33 @@ def send_data(request, msg):
     msg_len = msg_len.to_bytes(MSG_LENGTH_NUMBYTES, ENDIANESS)
     utils.send_data(request, msg_len)
     utils.send_data(request, msg)
+
+
+class TextInputProvider:
+    def __init__(self):
+        self.prev_text = None
+        self.prev_result = None
+        self.cancel = False
+        self.whiptail = Whiptail(title="Text client", backtitle="Nothing special :) ")
+
+    def get_data(self):
+        inputbox_msg = ""
+        if self.prev_result:
+            inputbox_msg += f"Previous request : {self.prev_text} \nPrevious result : {self.prev_result}\n"
+        inputbox_msg += """
+What is your input text :
+        """
+        text, cancel = self.whiptail.inputbox(inputbox_msg)
+        self.cancel = cancel
+        self.prev_text = text
+        return bytes(text, STR_ENCODING)
+
+    def release(self):
+        pass
+
+    def display(self, data: bytearray):
+        self.prev_result = data.decode(STR_ENCODING)
+        return not self.cancel
 
 
 class VideoInputProvider:
@@ -229,7 +256,7 @@ class Client:
                 self.jpeg_quality, self.jpeg_lib, self.resize_factor, self.device_id
             )
         elif self.input_type == "text":
-            raise NotImplementedError
+            self.input_provider = TextInputProvider()
         else:
             raise RuntimeError(
                 f"I do not know what to do to provide input data of type {self.input_type}"
@@ -238,7 +265,7 @@ class Client:
         if self.output_type == "image":
             self.output_displayer = VideoOutputDisplayer(self.jpeg_lib)
         elif self.input_type == "text":
-            raise NotImplementedError
+            self.output_displayer = self.input_provider  # TextOutputDisplayer()
         else:
             raise RuntimeError(
                 f"I do not know what to do to provide input data of type {self.input_type}"

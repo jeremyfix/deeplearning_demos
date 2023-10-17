@@ -122,10 +122,10 @@ Text-Translation-T5-Base:
     params:
       pretrained_model_name_or_path: "t5-base"
       max_new_tokens: 2048
-  task:
-    pre-prompt: "translate English to French:"
   input_type: "text"
   preprocessing:
+    - preprompt:
+        preprompt: "translate English to French: "
     - tokenize:
         pretrained_model_name_or_path: "t5-base"
         model_max_length: 1024
@@ -133,6 +133,7 @@ Text-Translation-T5-Base:
       cls: "decode"
       params:
         pretrained_model_name_or_path: "t5-base"
+        model_max_length: 1024
         skip_special_tokens: True
   output_type: "text"
 

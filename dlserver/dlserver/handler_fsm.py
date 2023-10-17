@@ -41,7 +41,7 @@ class CommandParserSingletonMeta(type):
 # Number of bytes for encoding the command and the message length
 MSG_LENGTH_NUMBYTES = 6
 ENDIANESS = "big"
-STR_ENCODING = "ascii"
+STR_ENCODING = "utf-8"
 # Mapping from the human readable ascii commands to their byte code
 MASTER_COMMAND_LENGTH = 1  # To be adjusted if need, according to below
 COMMANDS_ENCODINGS = {
@@ -160,20 +160,20 @@ class MasterStateMachine:
         return MasterStates.INIT
 
     def step(self, request):
-        try:
-            while self.current_state != MasterStates.FINAL:
-                logging.debug(f"In state {self.current_state}")
+        # try:
+        while self.current_state != MasterStates.FINAL:
+            logging.debug(f"In state {self.current_state}")
 
-                # Read the command
-                allowed_commands = self.transitions[self.current_state]
-                cmd = read_command(request, allowed_commands.keys())
-                self.current_state = allowed_commands[cmd](request)
-        except Exception as e:
-            logging.error(
-                f"Connection was closed. Exception was '{e}'. I'm quitting the thread"
-            )
-            self.current_state = MasterStates.FINAL
-            self.keeps_running = False
+            # Read the command
+            allowed_commands = self.transitions[self.current_state]
+            cmd = read_command(request, allowed_commands.keys())
+            self.current_state = allowed_commands[cmd](request)
+        # except Exception as e:
+        #     logging.error(
+        #         f"Connection was closed. Exception was '{e}'. I'm quitting the thread"
+        #     )
+        #     self.current_state = MasterStates.FINAL
+        #     self.keeps_running = False
 
 
 ModelStates = Enum(
@@ -274,7 +274,11 @@ class ModelStateMachine:
                 )
                 self.frame_assets["src_img"] = self.input_data.copy()
             elif self.input_type == "text":
-                raise NotImplementedError
+                self.input_data = received_data.decode(STR_ENCODING)
+                logging.debug(
+                    f"Got the input text : {self.input_data}, {type(self.input_data)}"
+                )
+                self.frame_assets["src_txt"] = self.input_data
             else:
                 raise RuntimeError(
                     f"I do not know what to process incoming data of type {self.input_type}"
@@ -305,7 +309,7 @@ class ModelStateMachine:
         if self.output_type == "image":
             result = self.jpeg_handler.compress(result)[0]
         elif self.output_type == "text":
-            raise NotImplementedError
+            result = bytes(result, STR_ENCODING)
         else:
             raise RuntimeError(
                 f"I do not know what to process outgoing data of type {self.output_type}"
