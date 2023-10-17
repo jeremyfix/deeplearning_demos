@@ -116,7 +116,7 @@ Segmentation-VOC-FCN-Resnet50-12-int8:
       blended: True
   output_type: "image"
 
-Text-Translation-T5-Base:
+Text-Translation-T5-Base-English-French:
   model:
     cls: "Transformers"
     params:
@@ -125,7 +125,7 @@ Text-Translation-T5-Base:
   input_type: "text"
   preprocessing:
     - preprompt:
-        preprompt: "translate English to French: "
+        preprompt: "translate English to French : "
     - tokenize:
         pretrained_model_name_or_path: "t5-base"
         model_max_length: 1024
@@ -133,6 +133,27 @@ Text-Translation-T5-Base:
       cls: "decode"
       params:
         pretrained_model_name_or_path: "t5-base"
+        model_max_length: 1024
+        skip_special_tokens: True
+  output_type: "text"
+
+Text-Translation-T5-3b-French-English:
+  model:
+    cls: "Transformers"
+    params:
+      pretrained_model_name_or_path: "t5-3b"
+      max_new_tokens: 2048
+  input_type: "text"
+  preprocessing:
+    - preprompt:
+        preprompt: "translate French to English : "
+    - tokenize:
+        pretrained_model_name_or_path: "t5-3b"
+        model_max_length: 1024
+  postprocessing: 
+      cls: "decode"
+      params:
+        pretrained_model_name_or_path: "t5-3b"
         model_max_length: 1024
         skip_special_tokens: True
   output_type: "text"
