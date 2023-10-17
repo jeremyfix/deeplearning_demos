@@ -22,6 +22,7 @@ import cv2
 import numpy as np
 from matplotlib.colors import hsv_to_rgb
 import yaml
+import transformers
 
 # Local import
 from . import preprocessing
@@ -380,6 +381,14 @@ class yolov8_seg:
                 thickness=2,
             )
         return img
+
+
+class decode:
+    def __init__(self, **kwargs):
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(**kwargs)
+
+    def __call__(self, frame_assets: dict):
+        return self.tokenizer.decode(frame_assets["outputs"][0])
 
 
 def load_function(postprocessing_name: str, params: dict):

@@ -20,6 +20,7 @@ import logging
 # External imports
 import numpy as np
 from PIL import Image
+import transformers
 
 
 def save_asset(inarray: np.array, key: str, frame_assets: dict):
@@ -98,6 +99,17 @@ def astype(img: np.array, ttype: str, frame_assets: dict):
 
 def add_frontdim(img: np.array, frame_assets: dict):
     return img[np.newaxis, ...]
+
+
+def preprompt(txt, frame_assets: dict, preprompt: str):
+    return preprompt + txt
+
+
+def tokenize(txt, frame_assets: dict, **kwargs):
+    if not hasattr(tokenize, "tokenizer"):
+        tokenize.tokenizer = transformers.AutoTokenizer.from_pretrained(**kwargs)
+    frame_assets["src_txt"] = txt
+    return tokenize.tokenizer(txt, return_tensors="pt").input_ids
 
 
 def imagenet_preprocess():

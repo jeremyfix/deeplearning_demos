@@ -23,6 +23,8 @@ import pathlib
 # External imports
 import numpy as np
 import onnxruntime as ort
+import transformers
+import torch
 
 
 class ImageToLabel:
@@ -58,6 +60,24 @@ class ONNX:
     def __call__(self, inp_data, frame_assets: dict):
         outputs = self.session.run(None, {self.input_field_name: inp_data})
         frame_assets["outputs"] = outputs
+
+
+class Transformers:
+    def __init__(self, modelname: str, max_new_tokens: int, **kwargs):
+        self.max_new_tokens = max_new_tokens
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = transformers.AutoModelForSeq2SeqLM.from_pretrained(**kwargs)
+
+        self.model = self.model.to(self.device)
+
+    def __call__(self, inp_data, frame_assets: dict):
+        with torch.no_grad():
+            # inp_data = inp_data.to(self.device)
+            out_model = self.model.generate(
+                inp_data, max_new_tokens=self.max_new_tokens
+            )
+            out_model = out_model.to("cpu")
+            frame_assets["outputs"] = out_model
 
 
 def load_model(cls: str, modelname: str, params: dict):
@@ -124,6 +144,41 @@ def test_yolov8():
     plt.show()
 
 
+def test_translation():
+    from . import preprocessing, postprocessing
+
+    model_params = {"pretrained_model_name_or_path": "t5-base", "max_new_tokens": 2048}
+    model = load_model("Transformers", "translate", model_params)
+
+    preprocessing_params = [
+        {"preprompt": {"preprompt": "translate English to French: "}},
+        {
+            "tokenize": {
+                "pretrained_model_name_or_path": "t5-base",
+                "model_max_length": 1024,
+            }
+        },
+    ]
+    fn_preprocessing = preprocessing.load_function(preprocessing_params)
+
+    postprocessing_params = {
+        "pretrained_model_name_or_path": "t5-base",
+        "model_max_length": 1024,
+        "skip_special_tokens": True,
+    }
+    fn_postprocessing = postprocessing.load_function("decode", postprocessing_params)
+    assets = {}
+    inp_data = "This is really a nice time for AI. Language models are impressive in their ability to solve difficult natural language tasks."
+
+    out_pre = fn_preprocessing(inp_data, assets)
+    model(out_pre, assets)
+    out_post = fn_postprocessing(assets)
+
+    print(f"Input : \n{inp_data}")
+    print(f"Output : \n{out_post}")
+
+
 if __name__ == "__main__":
     # test_mobilenet()
-    test_yolov8()
+    # test_yolov8()
+    test_translation()
