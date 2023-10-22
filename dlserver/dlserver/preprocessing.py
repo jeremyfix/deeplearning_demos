@@ -113,8 +113,10 @@ def tokenize(txt, frame_assets: dict, **kwargs):
 
 def imagenet_preprocess():
     preprocessing_params = [
-        {"pad_or_crop": {"targetsize": 224}},
-        {"save_asset": {"key": "resized_img"}},
+        {"square_pad": {}},
+        {"resize": {"height": 800, "width": 800}},
+        {"save_asset": {"key": "src_img"}},
+        {"resize": {"height": 224, "width": 224}},
         {"scale": {"value": 255.0}},
         {"normalize": {"mus": [0.485, 0.456, 0.406], "stds": [0.229, 0.224, 0.225]}},
         {"transpose": {"dims": [2, 0, 1]}},

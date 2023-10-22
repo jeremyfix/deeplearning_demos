@@ -71,17 +71,33 @@ class label_on_image:
         src_img = frame_assets["src_img"]
 
         scores = frame_assets["outputs"][0]
-        cls_id = scores.argmax()
-        label = self.labels[cls_id]
 
+        # Computes the probabilties
+        scores = scores - scores.max()
+        exp_scores = np.exp(scores).squeeze()
+        cls_proba = exp_scores / np.sum(exp_scores)
+
+        cls_id = scores.argmax()
+        label = f"{self.labels[cls_id]} ({cls_proba[cls_id]:.2})"
+
+        # 237, 201, 72
         font = cv2.FONT_HERSHEY_SIMPLEX
         bottomLeftCornerOfText = (10, src_img.shape[0] - 10)
         fontScale = 1
-        fontColor = (255, 0, 255)
+        fontColor = (78, 121, 167)
         thickness = 3
         lineType = 2
-        result = cv2.putText(
+        bgcolor = (237, 201, 72)
+        result = cv2.rectangle(
             src_img,
+            (2, src_img.shape[0] - 2),
+            (int(0.75 * src_img.shape[1]), src_img.shape[0] - 50),
+            bgcolor,
+            -1,
+        )
+
+        result = cv2.putText(
+            result,
             label,
             bottomLeftCornerOfText,
             font,

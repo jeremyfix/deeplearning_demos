@@ -88,15 +88,36 @@ def load_model(cls: str, modelname: str, params: dict):
 
 
 def test_mobilenet():
+    import matplotlib.pyplot as plt
+    from PIL import Image
+    from . import preprocessing
+    from . import postprocessing
+
     url = "https://github.com/onnx/models/raw/main/vision/classification/mobilenet/model/mobilenetv2-7.onnx"
     input_field_name = "data"
     model = ONNX("mobilnetv2.7", url, input_field_name)
 
-    X = np.zeros((1, 3, 224, 224), dtype="float32")
     assets = {}
+    fn_preprocessing = preprocessing.load_function("imagenet_preprocess")
+
+    # image_str = "people.jpeg"
+    image_str = "mamba.jpg"
+    X = Image.open(image_str)  # .resize((640, 640))
+    X = np.array(X)
+    X = fn_preprocessing(X, assets)
+
     model(X, assets)
-    for o in assets["outputs"]:
-        print(o.shape)
+
+    label_url = "https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt"
+
+    fn_postprocessing = postprocessing.load_function(
+        "label_on_image", {"labels_from_url": label_url}
+    )
+    out = fn_postprocessing(assets)
+
+    plt.figure()
+    plt.imshow(out)
+    plt.show()
 
 
 def test_yolov8():
@@ -179,6 +200,6 @@ def test_translation():
 
 
 if __name__ == "__main__":
-    # test_mobilenet()
+    test_mobilenet()
     # test_yolov8()
-    test_translation()
+    # test_translation()
