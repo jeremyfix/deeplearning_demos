@@ -16,7 +16,9 @@ An early version of these developments have been released within the [FEDER Gron
 ## General client/server documentation
 
 For the server, an executable entry point dldemos_server is installed in your PATH.
+
 	$ dlserver --help
+
 	usage: dlserver [-h] [--verbose {20,10}] [--port PORT] [--config CONFIG]
 
 	options:
