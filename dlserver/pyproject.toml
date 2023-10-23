@@ -16,5 +16,8 @@ dependencies = [
 [tool.setuptools]
 packages = ["dlserver"]
 
+[tool.setuptools.package-data]
+dlserver = ["configs/*.yaml"]
+
 [project.scripts]
 dlserver = "dlserver.serve:main"
