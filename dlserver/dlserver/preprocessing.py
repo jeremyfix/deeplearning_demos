@@ -16,6 +16,7 @@
 
 # Standard imports
 import logging
+from typing import Union
 
 # External imports
 import numpy as np
@@ -150,7 +151,7 @@ def load_compose(preprocessings: list):
     return lambda inarray, frame_assets: compose(inarray, fns, frame_assets)
 
 
-def load_function(preprocessings: str | list):
+def load_function(preprocessings: Union[str, list]):
     # preprocessing can be either a string or a dictionary
     logging.debug(f"Loading the preprocessing from {preprocessings}")
     if isinstance(preprocessings, str):
