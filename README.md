@@ -53,18 +53,16 @@ For installing the client, you can proceed the same way :
 python3 -m pip install git+https://github.com/jeremyfix/deeplearning_demos.git#subdirectory=dlclient
 ```
 
-
 ## Available demos
 
 The available demos are provided by a yaml file. The default yaml is provided in `dlserver/configs/default.yaml`. At the time of writting this documentation, it features :
 
-- image classification with MobileNet, trained on ImageNet
-- image classification with Resnet50, trained on ImageNet
-- Object detection with ultralytics Yolov8n, trained on Coco
-- Object detection + Segmentation with ultralytics Yolov8n, trained on Coco
-- Text translation English to French with t5 base from Hugging Face
-- Text translation French to English with t5 base from Hugging Face
-
+- image classification with MobileNet, trained on ImageNet, as provided by [https://github.com/onnx/models](https://github.com/onnx/models)
+- image classification with Resnet50, trained on ImageNet, as provided by [https://github.com/onnx/models](https://github.com/onnx/models)
+- Object detection with [ultralytics Yolov8n](https://docs.ultralytics.com/tasks/detect/), trained on Coco
+- Object detection + Segmentation with [ultralytics Yolov8n](https://docs.ultralytics.com/tasks/segment/), trained on Coco
+- Text translation English to French with [t5 base from Hugging Face](https://huggingface.co/t5-base)
+- Text translation French to English with [t5 base from Hugging Face](https://huggingface.co/t5-base)
 
 ## Using a slurm cluster
 
