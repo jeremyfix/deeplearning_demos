@@ -9,7 +9,8 @@ dependencies = [
     "onnxruntime",
     "onnxruntime-gpu",
     "matplotlib",
-    "transformers"
+    "transformers",
+    "torch" # required for the NLP demos
 ]
 
 [tool.setuptools]
