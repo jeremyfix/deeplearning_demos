@@ -1,6 +1,0 @@
-library: detectron2
-library_options:
-    cfg_file: "./model_zoo/configs/Misc/panoptic_fpn_R_101_dconv_cascade_gn_3x.yaml"
-    weights: "detectron2://Misc/panoptic_fpn_R_101_dconv_cascade_gn_3x/139797668/model_final_be35db.pkl"
-    output: 'panoptic'
-

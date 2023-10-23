@@ -1,5 +1,0 @@
-library: detectron2
-library_options:
-    cfg_file: "./model_zoo/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"
-    weights: "detectron2://COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl"
-    output: 'instance'

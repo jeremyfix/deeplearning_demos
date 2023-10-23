@@ -1,3 +1,0 @@
-library: semantic_segmentation_pytorch
-library_options:
-    model_config: ade20k-resnet101-upernet.yaml

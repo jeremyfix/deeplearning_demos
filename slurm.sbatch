@@ -14,26 +14,19 @@ export PATH=$PATH:$LOCAL/bin
 echo "Running on $(hostname)"
 
 echo ""
-echo "Cloning the repo"
-cd $TMPDIR/
-rm -rf $TMPDIR/deeplearning_demos
-git clone https://github.com/jeremyfix/deeplearning_demos.git
-cd deeplearning_demos
+echo "Virtual environment"
+
+python3 -m venv $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
 
 echo ""
-echo "Creating the virtualenv"
-
-python3 -m pip install virtualenv --user
-virtualenv -p python3 venv
-source venv/bin/activate
-ls
-python -m pip install -r requirements.txt
-python -m pip install .
+echo "Installation of dlserver"
+python -m pip install git+https://github.com/jeremyfix/deeplearning_demos.git#subdirectory=dlserver
 
 echo ""
 echo "Running"
 
-dldemos_server --config config://detectron2-panopticseg.yaml
+dlserver
 
 if [[ $? != 0 ]]; then
     exit -1
