@@ -4,8 +4,10 @@ In this repository, you will find some scripts used to perform some deep learnin
 
 If necessary, the client/server handles JPEG compression/decompression. That might be useful for low bandwidth networks. 
 
-- [General client/server documentation](general-clientserver-documentation)
-- [Installation](installation)
+- [General client/server documentation](#general-clientserver-documentation)
+- [Installation](#installation)
+- [Available demos](#available-demos)
+- [Using a slurm cluster](#using-a-slurm-cluster)
 
 ## Acknowledgment
 
