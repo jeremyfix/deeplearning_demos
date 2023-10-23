@@ -3,14 +3,14 @@ name = "dlserver"
 version = "1.0.0"
 
 dependencies = [
-    "PyYAML>=6.0",
-    "opencv-python-headless",
-    "numpy",
-    "onnxruntime",
-    "onnxruntime-gpu",
-    "matplotlib",
-    "transformers",
-    "torch" # required for the NLP demos
+    "PyYAML==6.0.1",
+    "opencv-python-headless==4.8.1.78",
+    "numpy==1.26.0",
+    "onnxruntime==1.16.0",
+    "onnxruntime-gpu==1.16.0",
+    "matplotlib==3.8.0",
+    "transformers==4.34.0",
+    "torch==2.1.0" # required for the NLP demos
 ]
 
 [tool.setuptools]
