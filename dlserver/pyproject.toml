@@ -9,7 +9,7 @@ dependencies = [
     "onnxruntime==1.16.0",
     "onnxruntime-gpu==1.16.0",
     "matplotlib",
-    "transformers==4.34.0",
+    "transformers==4.36.0",
     "torch==2.1.0" # required for the NLP demos
 ]
 
