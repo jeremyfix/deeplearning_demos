@@ -3,28 +3,28 @@ Classification-MobileNetv2.7:
   model: 
     cls: "ONNX"
     params: 
-      url: https://github.com/onnx/models/raw/main/vision/classification/mobilenet/model/mobilenetv2-7.onnx
+      url: https://github.com/onnx/models/raw/main/validated/vision/classification/mobilenet/model/mobilenetv2-7.onnx
       input_field_name: "data"
   preprocessing: "imagenet_preprocess"
   input_type: "image"
   postprocessing: 
     cls: "label_on_image"
     params: 
-      labels_from_url: https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt
+      labels_from_url: https://raw.githubusercontent.com/onnx/models/main/validated/vision/classification/synset.txt
   output_type: "image"
 
 Classification-Resnet50-v2.7:
   model: 
     cls: "ONNX"
     params:
-      url: https://github.com/onnx/models/raw/main/vision/classification/resnet/model/resnet50-v2-7.onnx
+      url: https://github.com/onnx/models/raw/main/validated/vision/classification/resnet/model/resnet50-v2-7.onnx
       input_field_name: "data"
   preprocessing: "imagenet_preprocess"
   input_type: "image"
   postprocessing: 
     cls: "label_on_image"
     params: 
-      labels_from_url: https://raw.githubusercontent.com/onnx/models/main/vision/classification/synset.txt
+      labels_from_url: https://raw.githubusercontent.com/onnx/models/main/validated/vision/classification/synset.txt
   output_type: "image"
 
 # Object detection with bounding boxes
@@ -88,7 +88,7 @@ Segmentation-VOC-FCN-Resnet50-12-int8:
   model: 
     cls: "ONNX"
     params:
-      url: https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/fcn/model/fcn-resnet50-12-int8.onnx
+      url: https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/fcn/model/fcn-resnet50-12-int8.onnx
       input_field_name: "input"
   preprocessing: 
     - square_pad:
