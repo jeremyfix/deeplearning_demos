@@ -168,14 +168,14 @@ class VideoOutputDisplayer:
     def __init__(self, jpeg_lib):
         self.jpeg_handler = utils.make_jpeg_handler(jpeg_lib, 100)
         self.window_name = "Result"
-        self.window = cv2.namedWindow("Result")
+        self.window = cv2.namedWindow("Result", cv2.WINDOW_NORMAL)
         # cv2.setWindowProperty(self.window_name, cv2.WND_PROP_TOPMOST, 1)
         cv2.setWindowProperty(
             self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN
         )
-        cv2.setWindowProperty(
-            self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL
-        )
+        # cv2.setWindowProperty(
+        #     self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL
+        # )
 
     def __del__(self):
         cv2.destroyWindow(self.window_name)
