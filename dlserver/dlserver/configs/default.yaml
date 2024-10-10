@@ -55,12 +55,68 @@ ObjectDetection-Yolov8n:
       labels_from_url: "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
   output_type: "image"
 
+# Object detection with bounding boxes
+ObjectDetection-Yolov11n:
+  model: 
+    cls: "ONNX"
+    params:
+      url: https://github.com/jeremyfix/onnx_models/raw/main/Vision/ObjectDetection/Yolov11/yolo11n-obb.onnx
+      input_field_name: "images"
+  preprocessing: 
+    - square_pad:
+    - resize:
+        width: 640
+        height: 640
+    - save_asset: 
+        key: "resized_img"
+    - scale:
+        value: 255.0
+    - transpose:
+        dims: [2, 0, 1]
+    - astype: 
+        ttype: "float32"
+    - add_frontdim:
+  input_type: "image"
+  postprocessing: 
+    cls: "yolov8_bbox"
+    params: 
+      labels_from_url: "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
+  output_type: "image"
+
 # Instance segmentation with Yolov8-seg
 Segmentation-Yolov8n:
   model: 
     cls: "ONNX"
     params:
       url: https://github.com/jeremyfix/onnx_models/raw/main/Vision/Segmentation/Yolov8/yolov8n-seg.onnx
+      input_field_name: "images"
+  preprocessing: 
+    - square_pad:
+    - resize:
+        width: 640
+        height: 640
+    - save_asset: 
+        key: "resized_img"
+    - scale:
+        value: 255.0
+    - transpose:
+        dims: [2, 0, 1]
+    - astype: 
+        ttype: "float32"
+    - add_frontdim:
+  input_type: "image"
+  postprocessing: 
+    cls: "yolov8_seg"
+    params: 
+      labels_from_url: "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
+  output_type: "image"
+
+# Instance segmentation with Yolov8-seg
+Segmentation-Yolov11n:
+  model: 
+    cls: "ONNX"
+    params:
+      url: https://github.com/jeremyfix/onnx_models/raw/main/Vision/Segmentation/Yolov11/yolo11n-seg.onnx
       input_field_name: "images"
   preprocessing: 
     - square_pad:
