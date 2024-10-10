@@ -65,8 +65,8 @@ ObjectDetection-Yolov11n:
   preprocessing: 
     - square_pad:
     - resize:
-        width: 640
-        height: 640
+        width: 1024
+        height: 1024
     - save_asset: 
         key: "resized_img"
     - scale:
