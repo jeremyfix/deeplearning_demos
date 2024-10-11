@@ -399,6 +399,37 @@ class yolov8_seg:
         return img
 
 
+class yolo11_obbox:
+    def __init__(self, labels_from_url: str):
+        raw_labels = request.urlopen(labels_from_url)
+        yml_content = yaml.safe_load(raw_labels)
+        self.labels = [v for k, v in yml_content["names"].items()]
+
+        self.num_classes = len(self.labels)
+        self.colors = [
+            [np.random.randint(0, 255) for _ in range(3)]
+            for _ in range(self.num_classes + 1)
+        ]
+        self.confidence_threshold = 0.5
+        self.iou_threshold = 0.8
+        self.height_text_box = 10
+        self.width_text_box = 100
+
+    def __call__(self, frame_assets: dict):
+        # The first output is 1, 20, 21504
+        # For 21504 predicted bounding boxes, each with 20 attributes
+        # ?? coordinates
+        # ?? classes confidences
+        print(frame_assets["outputs"][0].shape)
+        # print(frame_assets)
+        flattened_output = frame_assets["outputs"][0].squeeze().transpose()  # 8440, 84
+        num_predictions = flattened_output.shape[0]
+        print(num_predictions)
+
+        img = frame_assets["resized_img"]
+        return img
+
+
 class decode:
     def __init__(self, **kwargs):
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(**kwargs)

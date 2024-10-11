@@ -165,6 +165,50 @@ def test_yolov8():
     plt.show()
 
 
+def test_yolov11():
+    # Note :
+    # see
+    import matplotlib.pyplot as plt
+    from PIL import Image
+    from . import preprocessing
+    from . import postprocessing
+
+    url = "https://github.com/jeremyfix/onnx_models/raw/main/Vision/ObjectDetection/Yolov11/yolo11n-obb.onnx"
+    input_field_name = "images"
+    model = ONNX("yolo11n-obb", url, input_field_name)
+
+    assets = {}
+    preprocessing_params = [
+        {"square_pad": {}},
+        {"resize": {"width": 1024, "height": 1024}},
+        {"save_asset": {"key": "resized_img"}},
+        {"scale": {"value": 255.0}},
+        {"transpose": {"dims": [2, 0, 1]}},
+        {"add_frontdim": {}},
+        {"astype": {"ttype": "float32"}},
+    ]
+    fn_preprocessing = preprocessing.load_function(preprocessing_params)
+
+    # image_str = "people.jpeg"
+    image_str = "bus.jpg"
+    X = Image.open(image_str)  # .resize((640, 640))
+    X = np.array(X)
+    X = fn_preprocessing(X, assets)
+
+    model(X, assets)
+
+    label_url = "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml"
+    fn_postprocessing = postprocessing.load_function(
+        "yolo11_obbox", {"labels_from_url": label_url}
+    )
+
+    img = fn_postprocessing(assets)
+
+    plt.figure()
+    plt.imshow(img)
+    plt.show()
+
+
 def test_translation():
     from . import preprocessing, postprocessing
 
@@ -200,6 +244,7 @@ def test_translation():
 
 
 if __name__ == "__main__":
-    test_mobilenet()
+    # test_mobilenet()
     # test_yolov8()
     # test_translation()
+    test_yolov11()
