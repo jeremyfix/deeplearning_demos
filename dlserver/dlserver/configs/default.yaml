@@ -141,7 +141,7 @@ Segmentation-Yolov11n:
   output_type: "image"
 
 # Instance segmentation with Yolov11s-seg
-Segmentation-Yolov11n:
+Segmentation-Yolov11s:
   model: 
     cls: "ONNX"
     params:
