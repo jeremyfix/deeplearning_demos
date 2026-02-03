@@ -3,9 +3,9 @@ name = "dlclient"
 version = "1.0.0"
 
 dependencies = [
-    "opencv-python==4.8.1.78",
-    "numpy==1.26.0",
-    "whiptail-dialogs==0.4.0"
+    "opencv-python",
+    "numpy",
+    "whiptail-dialogs"
 ]
 
 [tool.setuptools]
